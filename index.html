@@ -17,7 +17,7 @@
   --rad:6px; --sh:0 1px 3px rgba(24,50,71,.10);
 }
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%}
+html,body{height:100%;max-width:100%;overflow-x:hidden}
 body{
   font:14px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
   color:var(--tx);background:var(--bg);-webkit-font-smoothing:antialiased;
@@ -45,7 +45,8 @@ svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.7;stroke
 /* ---------- TOPBAR ---------- */
 .main{margin-left:236px;min-height:100%;display:flex;flex-direction:column}
 .top{position:sticky;top:0;z-index:30;background:#fff;border-bottom:1px solid var(--line);
-  display:flex;align-items:center;gap:12px;padding:0 20px;height:56px}
+  display:flex;align-items:center;gap:12px;padding:0 20px;height:56px;max-width:100%;overflow:hidden}
+.top .tt{min-width:0;flex:1 1 auto;overflow:hidden}
 .top h1{font-size:17px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .top .sub{font-size:12px;color:var(--mut);margin-left:2px}
 .spacer{flex:1}
@@ -85,7 +86,7 @@ td{padding:11px 12px;border-bottom:1px solid #eef2f5;vertical-align:middle}
 tbody tr:hover{background:#f9fbfd}
 td.num,th.num{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
 td .m{color:var(--mut);font-size:12px}
-.tw{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.tw{overflow-x:auto;-webkit-overflow-scrolling:touch;max-width:100%}
 
 .bdg{display:inline-flex;align-items:center;gap:5px;font-size:12px;padding:3px 9px;border-radius:20px;white-space:nowrap;font-weight:500}
 .bdg.g{background:var(--gr-l);color:#1c7a33} .bdg.o{background:var(--or-l);color:#a76c05}
@@ -102,7 +103,7 @@ td .m{color:var(--mut);font-size:12px}
 .btn svg{width:16px;height:16px}
 
 .filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
-.inp{border:1px solid var(--line);background:#fff;border-radius:var(--rad);padding:8px 11px;outline:none;min-width:0}
+.inp{border:1px solid var(--line);background:#fff;border-radius:var(--rad);padding:8px 11px;outline:none;min-width:0;max-width:100%}
 .inp:focus{border-color:var(--acc);box-shadow:0 0 0 3px rgba(47,159,219,.13)}
 select.inp{cursor:pointer}
 .field{margin-bottom:12px}
@@ -174,7 +175,31 @@ select.inp{cursor:pointer}
   .top h1{font-size:15.5px}
   .top .sub{display:none}
   .rolebox label{display:none}
-  .wrap{padding:12px 12px calc(78px + env(safe-area-inset-bottom))}
+  .wrap{padding:12px 12px calc(78px + env(safe-area-inset-bottom));max-width:100vw;overflow-x:hidden}
+  .row{gap:0}
+  .col{flex:1 1 100%}
+  .card,.kpi{max-width:100%}
+  .filters{gap:7px}
+  .filters .inp{flex:1 1 100%;width:100%}
+  .filters .btn{flex:1 1 100%;justify-content:center}
+  .rolebox{padding:4px 6px}
+  .rolebox select{max-width:118px}
+  .kpi .vl{font-size:17px;overflow-wrap:anywhere}
+  .kpi .lb{font-size:10.5px}
+  .kpi .df{font-size:11px}
+  .bars{height:120px;gap:4px}
+  .bars .b span{font-size:9.5px}
+  .card>.hd{padding:11px 12px;flex-wrap:wrap}
+  .card>.hd h3{font-size:13.5px}
+  .card>.bd{padding:12px}
+  .pipe{gap:8px}
+  .dcard .acts{flex-wrap:wrap}
+  .dcard .ln{gap:10px}
+  .dcard .ln b{text-align:right;overflow-wrap:anywhere}
+  .list .it{padding:10px 12px}
+  .list .it .tx{min-width:0}
+  .list .it .tx b,.list .it .tx span{overflow-wrap:anywhere}
+  .leg{flex-wrap:wrap;gap:8px}
   .kpis{grid-template-columns:repeat(2,1fr);gap:9px}
   .kpi .vl{font-size:19px} .kpi .ic{display:none}
   .f2{grid-template-columns:1fr}
@@ -217,7 +242,7 @@ select.inp{cursor:pointer}
 <div class="main">
   <header class="top">
     <button class="icobtn only-m" onclick="openSheet()" aria-label="Меню"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
-    <div>
+    <div class="tt">
       <h1 id="pgTitle">Дашборд</h1>
       <div class="sub" id="pgSub">Сегодня, 27 августа 2026</div>
     </div>
@@ -231,7 +256,7 @@ select.inp{cursor:pointer}
       </select>
     </div>
     <button class="icobtn hide-m" aria-label="Уведомления"><svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 1 0-12 0c0 6-2 7-2 7h16s-2-1-2-7"/><path d="M13.7 19a2 2 0 0 1-3.4 0"/></svg><span class="dot"></span></button>
-    <div class="ava hide-m" id="ava">РК</div>
+    <div class="ava hide-m" id="ava">НЕ</div>
   </header>
   <div class="wrap" id="content"></div>
 </div>
@@ -453,6 +478,7 @@ P.prod = ()=>{
       <td>${p.master}</td>
       <td class="num">${F(p.inH)} / ${F(p.inL)}</td>
       <td class="num">${F(p.outH)} / ${F(p.outL)}</td>
+      <td class="num">${F(Math.round(out*0.94))} / ${F(out-Math.round(out*0.94))}</td>
       <td class="num" style="color:${p.def>5?'var(--rd)':'var(--tx)'}">${p.def}</td>
       <td><div style="display:flex;align-items:center;gap:8px"><div class="prog"><i class="${pr>93?'g':pr>85?'o':'r'}" style="width:${pr}%"></i></div><b>${pr}%</b></div></td>
       <td>${badge(p.stage)}</td><td>${badge(p.st)}</td></tr>`;
@@ -471,7 +497,7 @@ P.prod = ()=>{
   <div class="card"><div class="hd"><h3>Процесс: очистка от шерсти и промывка</h3><div class="spacer"></div><span class="mini only-m" style="font-size:11px">листайте вбок →</span></div>
     <div class="bd"><div class="pipe">${cols}</div></div></div>
   <div class="card"><div class="hd"><h3>Журнал смен</h3></div>
-    <div class="bd tight">${tbl(['Смена','Начальник','+Принято г/н','+Сдано г/н','+Брак','Выход','Этап','Статус'],rows)}</div></div>`;
+    <div class="bd tight">${tbl(['Смена','Начальник','+Принято г/н','+Сдано г/н','+Сорт 1 / 2','+Брак','Выход','Этап','Статус'],rows)}</div></div>`;
 };
 
 P.fin = ()=>{
@@ -648,6 +674,15 @@ P.set = ()=>`
         <div style="display:flex;gap:7px;flex-wrap:wrap">${['Газ','Вода','Электроэнергия','Аренда','Зарплата','ГСМ','Хозрасходы','Ремонт','Налоги'].map(c=>`<span class="bdg b">${c}</span>`).join('')}</div>
         <div style="margin-top:12px;display:flex;gap:8px"><input class="inp" placeholder="Новая категория" style="flex:1"><button class="btn" onclick="toast('Категория добавлена')">Добавить</button></div>
       </div></div>
+      <div class="card"><div class="hd"><h3>Сорта и критерии качества</h3></div><div class="bd tight">
+        ${tbl(['Сорт','Критерий','+Цена головы','+Цена ножки'],[
+          ['1 сорт','Кожа чистая, без щетины и ожогов, форма целая',3000,700],
+          ['2 сорт','Лёгкий ожог или потемнение, единичная щетина',2200,500],
+          ['Брак','Сильный ожог, порезы, запах — на утилизацию','—','—']
+        ].map(r=>`<tr><td><b>${r[0]}</b></td><td>${r[1]}</td><td class="num">${typeof r[2]==='number'?T(r[2]):r[2]}</td><td class="num">${typeof r[3]==='number'?T(r[3]):r[3]}</td></tr>`).join(''))}
+      </div><div class="bd" style="border-top:1px solid var(--line);font-size:12.5px;color:var(--mut)">
+        Сорт присваивает контроль качества в форме «Сдать партию на склад» — до этого продукция числится в цехе без сорта.
+      </div></div>
       <div class="card"><div class="hd"><h3>Компания</h3></div><div class="bd">
         <div class="field"><label>Название</label><input class="inp" value="ТОО «BasZhilik»"></div>
         <div class="field"><label>Адрес цеха</label><input class="inp" value="Шымкент, промзона Тассай, уч. 14"></div>
@@ -668,7 +703,7 @@ P.shift = ()=>`
   ])}
   <div class="filters">
     <button class="btn" onclick="prodModal()">${ic('plus')}Взять партию в работу</button>
-    <button class="btn gr" onclick="go('finM')">${ic('check')}Сдать на склад ГП</button>
+    <button class="btn gr" onclick="sdachaModal()">${ic('check')}Сдать на склад ГП</button>
     <button class="btn gh" onclick="expModal()">${ic('exp')}Расход по цеху</button>
   </div>
   <div class="row">
@@ -785,6 +820,7 @@ P.prodM = ()=>{
     const pr=Math.round((p.outH+p.outL)/(p.inH+p.inL)*100);
     return `<tr><td><b>${p.id}</b><div class="m">${p.date} · ${p.shift}</div></td>
       <td class="num">${F(p.inH)} / ${F(p.inL)}</td><td class="num">${F(p.outH)} / ${F(p.outL)}</td>
+      <td class="num">${F(Math.round((p.outH+p.outL)*0.94))} / ${F((p.outH+p.outL)-Math.round((p.outH+p.outL)*0.94))}</td>
       <td class="num" style="color:${p.def>5?'var(--rd)':'var(--tx)'}">${p.def}</td>
       <td><div style="display:flex;align-items:center;gap:8px"><div class="prog"><i class="${pr>93?'g':'o'}" style="width:${pr}%"></i></div><b>${pr}%</b></div></td>
       <td>${badge(p.st)}</td></tr>`;
@@ -803,7 +839,7 @@ P.prodM = ()=>{
   <div class="card"><div class="hd"><h3>Этапы очистки</h3><div class="spacer"></div><span class="mini only-m" style="font-size:11px">листайте вбок →</span></div>
     <div class="bd"><div class="pipe">${cols}</div></div></div>
   <div class="card"><div class="hd"><h3>Мои смены</h3></div>
-    <div class="bd tight">${tbl(['Смена','+Принято г/н','+Сдано г/н','+Брак','Выход','Статус'],rows)}</div></div>`;
+    <div class="bd tight">${tbl(['Смена','+Принято г/н','+Сдано г/н','+Сорт 1 / 2','+Брак','Выход','Статус'],rows)}</div></div>`;
 };
 
 P.finM = ()=>{
@@ -815,7 +851,7 @@ P.finM = ()=>{
     {l:'Ножки на складе',v:'1 203 шт',s:'сдано сменой сегодня 265',i:'fin',c:'g'},
     {l:'Ожидает сдачи',v:'42 гол / 135 нож',s:'после промывки',i:'prod',c:'o'}
   ])}
-  <div class="filters"><button class="btn gr" onclick="toast('Партия сдана на склад готовой продукции')">${ic('check')}Сдать партию на склад</button></div>
+  <div class="filters"><button class="btn gr" onclick="sdachaModal()">${ic('check')}Сдать партию на склад (сорт 1 / 2)</button></div>
   <div class="card"><div class="hd"><h3>Остатки готовой продукции</h3><div class="spacer"></div><span class="mini">без резервов и цен</span></div>
     <div class="bd tight">${tbl(['Номенклатура','+Остаток','Годен'],rows)}</div></div>`;
 };
@@ -928,6 +964,25 @@ function closeModal(){document.getElementById('modalOv').classList.remove('on')}
 function saveModal(){if(saveFn)saveFn();closeModal()}
 function toast(t){const el=document.getElementById('toast');el.textContent=t;el.classList.add('on');clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('on'),2600)}
 
+function sdachaModal(){
+  modal('Сдача партии на склад ГП',`
+    <div class="field"><label>Партия / смена</label><select class="inp"><option>СМ-0318 · партия 1 (после промывки)</option><option>СМ-0318 · партия 2</option></select></div>
+    <div style="font-size:12px;color:var(--mut);margin:2px 0 10px">Сорт присваивается здесь, на контроле качества, при сдаче на склад</div>
+    <div style="font-weight:600;font-size:13px;margin-bottom:8px">Головы</div>
+    <div class="f2"><div class="field"><label>1 сорт, шт</label><input class="inp" id="s1h" placeholder="70"></div>
+    <div class="field"><label>2 сорт, шт</label><input class="inp" id="s2h" placeholder="8"></div></div>
+    <div style="font-weight:600;font-size:13px;margin:4px 0 8px">Ножки</div>
+    <div class="f2"><div class="field"><label>1 сорт, шт</label><input class="inp" id="s1l" placeholder="250"></div>
+    <div class="field"><label>2 сорт, шт</label><input class="inp" id="s2l" placeholder="15"></div></div>
+    <div class="f2"><div class="field"><label>Брак, шт</label><input class="inp" placeholder="3"></div>
+    <div class="field"><label>Причина 2 сорта / брака</label><select class="inp"><option>Остатки щетины</option><option>Ожог кожи при опалке</option><option>Повреждение при разделке</option><option>Некондиция сырья</option></select></div></div>
+    <div class="field"><label>Принял на склад</label><select class="inp"><option>Ерлан Жақсылық</option><option>Данияр Ержан (контроль)</option></select></div>
+    <div class="drop" onclick="toast('Выбор файла: фото партии')">${ic('dl')} Фото партии (по желанию)</div>`,
+    ()=>{const a=+(document.getElementById('s1h').value||70),b=+(document.getElementById('s2h').value||8),
+      c=+(document.getElementById('s1l').value||250),d=+(document.getElementById('s2l').value||15);
+      S.fin[0].q+=a;S.fin[1].q+=b;S.fin[2].q+=c;S.fin[3].q+=d;render();
+      toast('Сдано: 1 сорт '+(a+c)+' шт, 2 сорт '+(b+d)+' шт')},'Сдать на склад');
+}
 function rawModal(){
   modal('Приход неочищенного сырья',`
     <div class="f2"><div class="field"><label>Дата</label><input class="inp" type="date" value="2026-08-27"></div>

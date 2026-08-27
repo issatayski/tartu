@@ -3,448 +3,618 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Qazaq Et System — Панель управления цехом</title>
+    <title>Управление Производством - Очистка Голов и Ножек</title>
     <style>
         :root {
-            --bg-main: #f4f6f9;
-            --bg-card: #ffffff;
-            --text-dark: #1e293b;
-            --text-muted: #64748b;
-            --primary: #0284c7;
-            --primary-hover: #0369a1;
-            --accent-green: #10b981;
-            --accent-amber: #f59e0b;
-            --border: #e2e8f0;
-            --sidebar-width: 260px;
+            --bg-dark: #121824;
+            --bg-card: #1e2738;
+            --bg-hover: #2a364f;
+            --accent: #3b82f6;
+            --accent-hover: #2563eb;
+            --text-main: #e2e8f0;
+            --text-muted: #94a3b8;
+            --border: #334155;
+            --success: #10b981;
+            --warning: #f59e0b;
         }
 
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         }
 
         body {
-            background-color: var(--bg-main);
-            color: var(--text-dark);
+            background-color: var(--bg-dark);
+            color: var(--text-main);
             display: flex;
-            min-height: 100vh;
+            height: 100vh;
+            overflow: hidden;
         }
 
         /* Sidebar */
         aside {
-            width: var(--sidebar-width);
-            background: #0f172a;
-            color: #fff;
-            padding: 1.5rem 1rem;
+            width: 260px;
+            background-color: var(--bg-card);
+            border-right: 1px solid var(--border);
             display: flex;
             flex-direction: column;
-            gap: 2rem;
-            position: fixed;
-            height: 100vh;
         }
 
-        aside .logo {
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: #38bdf8;
-            letter-spacing: 0.5px;
+        .brand {
+            padding: 20px;
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--accent);
+            border-bottom: 1px solid var(--border);
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 10px;
         }
 
-        aside nav ul {
+        .menu {
             list-style: none;
+            padding: 15px 0;
+            flex: 1;
+        }
+
+        .menu-item {
+            padding: 12px 20px;
             display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-
-        aside nav a {
-            color: #94a3b8;
-            text-decoration: none;
-            padding: 0.75rem 1rem;
-            border-radius: 8px;
-            display: block;
-            font-size: 0.95rem;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            color: var(--text-muted);
             transition: all 0.2s;
+            font-size: 14px;
         }
 
-        aside nav a:hover, aside nav a.active {
-            background: #1e293b;
-            color: #38bdf8;
-            font-weight: 600;
+        .menu-item:hover, .menu-item.active {
+            background-color: var(--bg-hover);
+            color: #fff;
+            border-left: 4px solid var(--accent);
         }
 
         /* Main Content */
         main {
-            margin-left: var(--sidebar-width);
             flex: 1;
-            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
         }
 
         header {
+            height: 60px;
+            background-color: var(--bg-card);
+            border-bottom: 1px solid var(--border);
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            margin-bottom: 2rem;
+            justify-content: space-between;
+            padding: 0 25px;
         }
 
-        header h1 {
-            font-size: 1.75rem;
-            font-weight: 700;
-        }
-
-        .user-profile {
-            font-size: 0.9rem;
+        .user-info {
+            font-size: 14px;
             color: var(--text-muted);
-            background: var(--bg-card);
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
-            border: 1px solid var(--border);
         }
 
-        /* Metrics Grid */
-        .metrics-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 1.25rem;
-            margin-bottom: 2rem;
+        .content {
+            padding: 25px;
+            overflow-y: auto;
+            flex: 1;
         }
 
-        .metric-card {
-            background: var(--bg-card);
-            padding: 1.25rem;
-            border-radius: 12px;
-            border: 1px solid var(--border);
+        .section {
+            display: none;
         }
 
-        .metric-card span {
-            font-size: 0.85rem;
-            color: var(--text-muted);
+        .section.active {
             display: block;
-            margin-bottom: 0.5rem;
         }
 
-        .metric-card .value {
-            font-size: 1.5rem;
-            font-weight: 700;
-        }
-
-        .metric-card .subtext {
-            font-size: 0.8rem;
-            margin-top: 0.5rem;
-        }
-
-        .text-green { color: var(--accent-green); }
-        .text-amber { color: var(--accent-amber); }
-
-        /* Sections Grid */
-        .dashboard-grid {
+        /* Cards & Grids */
+        .grid-4 {
             display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 1.5rem;
-        }
-
-        @media (max-width: 1024px) {
-            .dashboard-grid { grid-template-columns: 1fr; }
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 25px;
         }
 
         .card {
-            background: var(--bg-card);
-            border-radius: 12px;
+            background-color: var(--bg-card);
             border: 1px solid var(--border);
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.25rem;
+            border-radius: 8px;
+            padding: 20px;
         }
 
         .card-title {
-            font-size: 1.1rem;
-            font-weight: 600;
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            text-transform: uppercase;
         }
 
-        /* Forms */
-        .form-group {
-            margin-bottom: 1rem;
+        .card-value {
+            font-size: 24px;
+            font-weight: bold;
         }
 
-        .form-group label {
-            display: block;
-            font-size: 0.85rem;
-            font-weight: 600;
-            margin-bottom: 0.4rem;
+        .card-sub {
+            font-size: 12px;
+            color: var(--success);
+            margin-top: 5px;
         }
 
-        .form-control {
-            width: 100%;
-            padding: 0.6rem 0.8rem;
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            font-size: 0.9rem;
-            outline: none;
-        }
-
-        .form-control:focus {
-            border-color: var(--primary);
-        }
-
-        .form-row {
+        /* Forms & Controls */
+        .toolbar {
             display: flex;
-            gap: 1rem;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            gap: 15px;
         }
 
         .btn {
-            background: var(--primary);
+            background-color: var(--accent);
             color: #fff;
             border: none;
-            padding: 0.6rem 1.2rem;
+            padding: 10px 18px;
             border-radius: 6px;
-            font-weight: 600;
             cursor: pointer;
-            width: 100%;
-            transition: background 0.2s;
+            font-weight: 500;
+            font-size: 14px;
         }
 
-        .btn:hover { background: var(--primary-hover); }
+        .btn:hover {
+            background-color: var(--accent-hover);
+        }
+
+        .form-inline {
+            display: flex;
+            gap: 10px;
+            background: var(--bg-card);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            margin-bottom: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        input, select {
+            background-color: var(--bg-dark);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 9px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+        }
+
+        input:focus, select:focus {
+            border-color: var(--accent);
+        }
 
         /* Tables */
         table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 0.9rem;
+            background-color: var(--bg-card);
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid var(--border);
         }
 
         th, td {
+            padding: 14px 18px;
             text-align: left;
-            padding: 0.75rem 0.5rem;
             border-bottom: 1px solid var(--border);
+            font-size: 14px;
         }
 
         th {
+            background-color: rgba(255, 255, 255, 0.03);
             color: var(--text-muted);
             font-weight: 600;
         }
 
+        tr:hover {
+            background-color: var(--bg-hover);
+        }
+
         .badge {
-            padding: 0.25rem 0.6rem;
-            border-radius: 12px;
-            font-size: 0.75rem;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
             font-weight: 600;
         }
 
-        .badge-pending { background: #fef3c7; color: #d97706; }
-        .badge-success { background: #dcfce7; color: #15803d; }
-        .badge-process { background: #e0f2fe; color: #0369a1; }
+        .badge-raw { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
+        .badge-proc { background: rgba(59, 130, 246, 0.2); color: #3b82f6; }
+        .badge-clean { background: rgba(16, 185, 129, 0.2); color: #10b981; }
+        .badge-deliv { background: rgba(168, 85, 247, 0.2); color: #a855f7; }
     </style>
 </head>
 <body>
 
-    <!-- Sidebar navigation -->
     <aside>
-        <div class="logo">
-            <span>🥩</span> QazaqEt Control
+        <div class="brand">
+            <span>🥩 MeatClean ERP</span>
         </div>
-        <nav>
-            <ul>
-                <li><a href="#" class="active">Дашборд</a></li>
-                <li><a href="#">Приход (Сырье)</a></li>
-                <li><a href="#">Опалка и Промывка</a></li>
-                <li><a href="#">Готовая продукция</a></li>
-                <li><a href="#">Заказы и Доставка</a></li>
-                <li><a href="#">Клиенты (Рестораны)</a></li>
-                <li><a href="#">Отчеты и Аналитика</a></li>
-            </ul>
-        </nav>
+        <ul class="menu">
+            <li class="menu-item active" onclick="switchTab('dashboard')">📊 Дашборд / Мониторинг</li>
+            <li class="menu-item" onclick="switchTab('stock-raw')">📦 Склад Сырья (Грязный)</li>
+            <li class="menu-item" onclick="switchTab('processing')">⚙️ Очистка и Промывка</li>
+            <li class="menu-item" onclick="switchTab('stock-clean')">✨ Склад Готовой Продукции</li>
+            <li class="menu-item" onclick="switchTab('sales')">💰 Продажи и Заказы</li>
+            <li class="menu-item" onclick="switchTab('clients')">👥 Клиенты (Кафе/Рестораны)</li>
+            <li class="menu-item" onclick="switchTab('logistics')">🚚 Доставка и Самовывоз</li>
+            <li class="menu-item" onclick="switchTab('reports')">📈 Отчеты</li>
+        </ul>
     </aside>
 
-    <!-- Main Content -->
     <main>
         <header>
-            <h1>Оперативный обзор цеха</h1>
-            <div class="user-profile">Оператор: <strong>Мастер Цеха</strong></div>
+            <h2 id="page-title">Дашборд / Мониторинг</h2>
+            <div class="user-info">Оператор: Цех №1 (Шымкент)</div>
         </header>
 
-        <!-- Top KPI Cards -->
-        <div class="metrics-grid">
-            <div class="metric-card">
-                <span>Склад грязного (Сырье)</span>
-                <div class="value">450 шт / 680 кг</div>
-                <div class="subtext text-amber">Баранина: 350 | КРС: 100</div>
-            </div>
-            <div class="metric-card">
-                <span>В процессе очистки</span>
-                <div class="value">120 шт</div>
-                <div class="subtext text-amber">Опалка & Washing Station</div>
-            </div>
-            <div class="metric-card">
-                <span>Готово на складе</span>
-                <div class="value text-green">890 шт / 1,240 кг</div>
-                <div class="subtext text-green">Готово к отгрузке</div>
-            </div>
-            <div class="metric-card">
-                <span>Отгружено за сегодня</span>
-                <div class="value">340 шт</div>
-                <div class="subtext">12 ресторанов</div>
-            </div>
-        </div>
+        <div class="content">
 
-        <div class="dashboard-grid">
-            <!-- Left Column: Operations & Active Batches -->
-            <div>
-                <!-- Active Production Batches -->
-                <div class="card">
-                    <div class="card-header">
-                        <div class="card-title">Текущие партии в обработке (Очистка/Промывка)</div>
+            <!-- DASHBOARD -->
+            <div id="dashboard" class="section active">
+                <div class="grid-4">
+                    <div class="card">
+                        <div class="card-title">Сырье на складе</div>
+                        <div class="card-value">1,240 шт</div>
+                        <div class="card-sub">~1,850 кг (Баранина)</div>
                     </div>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>ID Партии</th>
-                                <th>Тип сырья</th>
-                                <th>Кол-во</th>
-                                <th>Вес (вход)</th>
-                                <th>Стадия</th>
-                                <th>Статус</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>#BATCH-104</td>
-                                <td>Бараньи головы</td>
-                                <td>100 шт</td>
-                                <span>180 кг</span>
-                                <td>Опалочный барабан</td>
-                                <td><span class="badge badge-process">Очистка</span></td>
-                            </tr>
-                            <tr>
-                                <td>#BATCH-105</td>
-                                <td>Бараньи ножки</td>
-                                <td>400 шт</td>
-                                <td>120 кг</td>
-                                <td>Промывочная ванна</td>
-                                <td><span class="badge badge-process">Промывка</span></td>
-                            </tr>
-                            <tr>
-                                <td>#BATCH-103</td>
-                                <td>Головы КРС (Коровы)</td>
-                                <td>15 шт</td>
-                                <td>210 кг</td>
-                                <td>Окончательная сушка</td>
-                                <td><span class="badge badge-pending">Контроль качества</span></td>
-                            </tr>
-                        </tbody>
-                    </table>
+                    <div class="card">
+                        <div class="card-title">В процессе очистки</div>
+                        <div class="card-value">350 шт</div>
+                        <div class="card-sub">Загрузка оборудования: 85%</div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">Готовая продукция</div>
+                        <div class="card-value">890 шт</div>
+                        <div class="card-sub">Готово к отгрузке</div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">Отгружено за сегодня</div>
+                        <div class="card-value">420 шт</div>
+                        <div class="card-sub">Выручка: 1,260,000 ₸</div>
+                    </div>
                 </div>
 
-                <!-- Recent Delivery Orders -->
-                <div class="card">
-                    <div class="card-header">
-                        <div class="card-title">Заказы на отгрузку (Рестораны/Кафе)</div>
+                <h3>Текущая загрузка оборудования (Опалка / Мойка)</h3>
+                <br>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Линия / Оборудование</th>
+                            <th>Тип сырья</th>
+                            <th>Загружено (Шт / Кг)</th>
+                            <th>Статус</th>
+                            <th>Время до завершения</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Барабан опалочный №1</td>
+                            <td>Бараньи головы</td>
+                            <td>100 шт / 150 кг</td>
+                            <td><span class="badge badge-proc">Опалка шерсти</span></td>
+                            <td>12 мин</td>
+                        </tr>
+                        <tr>
+                            <td>Моечный комплекс №2</td>
+                            <td>Бараньи ножки</td>
+                            <td>200 шт / 80 кг</td>
+                            <td><span class="badge badge-proc">Промывка водой</span></td>
+                            <td>5 мин</td>
+                        </tr>
+                        <tr>
+                            <td>Барабан опалочный №2 (Резерв)</td>
+                            <td>Коровьи головы (Тест)</td>
+                            <td>0 шт / 0 кг</td>
+                            <td><span class="badge badge-clean">Простой / Готов</span></td>
+                            <td>—</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- RAW STOCK -->
+            <div id="stock-raw" class="section">
+                <div class="toolbar">
+                    <h3>Пополнение склада (Неочищенное сырье)</h3>
+                </div>
+
+                <div class="form-inline">
+                    <select>
+                        <option>Категория скота</option>
+                        <option selected>Баранина</option>
+                        <option>Коничина</option>
+                        <option>КРС (Коровы)</option>
+                        <option>Верблюжатина</option>
+                        <option>Козы</option>
+                    </select>
+                    <select>
+                        <option>Тип частeй</option>
+                        <option>Головы</option>
+                        <option>Ножки</option>
+                        <option>Комплект (1 гол + 4 ножки)</option>
+                    </select>
+                    <input type="number" placeholder="Количество (шт)">
+                    <input type="number" placeholder="Общий вес (кг)">
+                    <input type="text" placeholder="Поставщик / Ферма">
+                    <button class="btn">+ Принять на склад</button>
+                </div>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Дата прихода</th>
+                            <th>Вид скота</th>
+                            <th>Тип</th>
+                            <th>Кол-во (шт)</th>
+                            <th>Вес (кг)</th>
+                            <th>Поставщик</th>
+                            <th>Статус</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            #RAW-102
+                            <td>27.08.2026 14:20</td>
+                            <td>Баранина</td>
+                            <td>Головы</td>
+                            <td>500</td>
+                            <td>750</td>
+                            <td>КХ "Бастау"</td>
+                            <td><span class="badge badge-raw">На складе</span></td>
+                        </tr>
+                        <tr>
+                            #RAW-101
+                            <td>27.08.2026 10:00</td>
+                            <td>Баранина</td>
+                            <td>Ножки</td>
+                            <td>1200</td>
+                            <td>480</td>
+                            <td>ИП Ахметов</td>
+                            <td><span class="badge badge-proc">Частично в работе</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- PROCESSING -->
+            <div id="processing" class="section">
+                <h3>Передача сырья в цех очистки</h3>
+                <br>
+                <div class="form-inline">
+                    <select>
+                        <option>Выберите партию сырья</option>
+                        <option>#RAW-102 - Бараньи головы (Доступно: 500 шт)</option>
+                    </select>
+                    <input type="number" placeholder="Кол-во для очистки (шт)">
+                    <select>
+                        <option>Назначить на линию</option>
+                        <option>Барабан опалочный №1</option>
+                        <option>Барабан опалочный №2</option>
+                    </select>
+                    <button class="btn">Запустить процесс</button>
+                </div>
+
+                <h3>Активные процессы</h3>
+                <br>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Партия</th>
+                            <th>Тип</th>
+                            <th>Количество</th>
+                            <th>Операция</th>
+                            <th>Потери веса (Шерсть/Грязь)</th>
+                            <th>Действие</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>#PROC-88</td>
+                            <td>Бараньи головы</td>
+                            <td>150 шт</td>
+                            <td>Опалка / Сбитие шерсти</td>
+                            <td>Ожидается (~10%)</td>
+                            <td><button class="btn" style="padding: 4px 8px; font-size:12px;">Завершить и промыть</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- CLEAN STOCK -->
+            <div id="stock-clean" class="section">
+                <h3>Склад готовой (Очищенной) продукции</h3>
+                <br>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Вид продукции</th>
+                            <th>В наличии (шт)</th>
+                            <th>Чистый вес (кг)</th>
+                            <th>Готовность</th>
+                            <th>Забронировано под заказы</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Голова баранья (Очищенная, промытая)</td>
+                            <td>450 шт</td>
+                            <td>580 кг</td>
+                            <td><span class="badge badge-clean">100% Готово</span></td>
+                            <td>200 шт</td>
+                        </tr>
+                        <tr>
+                            <td>Ножки бараньи (Очищенные)</td>
+                            <td>1,800 шт</td>
+                            <td>540 кг</td>
+                            <td><span class="badge badge-clean">100% Готово</span></td>
+                            <td>600 шт</td>
+                        </tr>
+                        <tr>
+                            <td>Голова конская (Тестовая обработка)</td>
+                            <td>5 шт</td>
+                            <td>65 кг</td>
+                            <td><span class="badge badge-clean">100% Готово</span></td>
+                            <td>0 шт</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- SALES -->
+            <div id="sales" class="section">
+                <div class="toolbar">
+                    <h3>Заказы и Продажи</h3>
+                    <button class="btn">+ Создать заказ</button>
+                </div>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>№ Заказа</th>
+                            <th>Клиент</th>
+                            <th>Состав заказа</th>
+                            <th>Сумма</th>
+                            <th>Тип получения</th>
+                            <th>Статус оплаты</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>#ORD-501</td>
+                            <td>Ресторан "Rixos Shymkent"</td>
+                            <td>Головы бараньи (30 шт), Ножки (120 шт)</td>
+                            <td>180,000 ₸</td>
+                            <td><span class="badge badge-deliv">Доставка курьером</span></td>
+                            <td><span class="badge badge-clean">Оплачено</span></td>
+                        </tr>
+                        <tr>
+                            <td>#ORD-502</td>
+                            <td>Кафе "Жулдыз"</td>
+                            <td>Головы бараньи (10 шт)</td>
+                            <td>35,000 ₸</td>
+                            <td><span class="badge badge-raw">Самовывоз</span></td>
+                            <td><span class="badge badge-raw">Ожидает оплаты</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- CLIENTS -->
+            <div id="clients" class="section">
+                <div class="toolbar">
+                    <h3>База клиентов (Кафе, Рестораны, Частные лица)</h3>
+                    <button class="btn">+ Добавить клиента</button>
+                </div>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Название / Имя</th>
+                            <th>Тип</th>
+                            <th>Телефон</th>
+                            <th>Адрес доставки</th>
+                            <th>Всего заказов</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Ресторан "Rixos Shymkent"</td>
+                            <td>Ресторан</td>
+                            <td>+7 777 111 22 33</td>
+                            <td>г. Шымкент, пр. Тауке Хана 17</td>
+                            <td>24 заказа</td>
+                        </tr>
+                        <tr>
+                            <td>Кафе "Жулдыз"</td>
+                            <td>Кафе</td>
+                            <td>+7 701 555 44 33</td>
+                            <td>г. Шымкент, ул. Байтурсынова 12</td>
+                            <td>8 заказов</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- LOGISTICS -->
+            <div id="logistics" class="section">
+                <h3>Управление Доставкой и Самовывозом</h3>
+                <br>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Заказ</th>
+                            <th>Адрес / Способ</th>
+                            <th>Водитель / Курьер</th>
+                            <th>Статус отгрузки</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>#ORD-501</td>
+                            <td>Доставка: пр. Тауке Хана 17</td>
+                            <td>Курьер Нурлан (Газель 013AC)</td>
+                            <td><span class="badge badge-proc">В пути</span></td>
+                        </tr>
+                        <tr>
+                            <td>#ORD-502</td>
+                            <td>Самовывоз со склада</td>
+                            <td>Представитель клиента</td>
+                            <td><span class="badge badge-raw">Ожидает клиента</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- REPORTS -->
+            <div id="reports" class="section">
+                <h3>Отчеты и Сводка</h3>
+                <br>
+                <div class="grid-4">
+                    <div class="card">
+                        <div class="card-title">Выход чистого веса</div>
+                        <div class="card-value">82%</div>
+                        <div class="card-sub">18% отход (шерсть/грязь)</div>
                     </div>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Клиент</th>
-                                <th>Позиции</th>
-                                <th>Тип доставки</th>
-                                <th>Сумма</th>
-                                <th>Статус</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>Ресторан "Rumi"</td>
-                                <td>Головы (Баран): 20 шт<br><small class="text-muted">Ножки: 80 шт</small></td>
-                                <td>Доставка курьером</td>
-                                <td>78,000 ₸</td>
-                                <td><span class="badge badge-process">В пути</span></td>
-                            </tr>
-                            <tr>
-                                <td>Кафе "Нават"</td>
-                                <td>Головы (Баран): 15 шт</td>
-                                <td>Самовывоз</td>
-                                <td>45,000 ₸</td>
-                                <td><span class="badge badge-success">Выполнен</span></td>
-                            </tr>
-                        </tbody>
-                    </table>
+                    <div class="card">
+                        <div class="card-title">Себестоимость очистки</div>
+                        <div class="card-value">250 ₸ / шт</div>
+                        <div class="card-sub">Вода, свет, амортизация</div>
+                    </div>
                 </div>
             </div>
 
-            <!-- Right Column: Quick Intake & Outflow forms -->
-            <div>
-                <!-- Raw Materials Intake Form -->
-                <div class="card">
-                    <div class="card-header">
-                        <div class="card-title">Приход неочищенного сырья</div>
-                    </div>
-                    <form>
-                        <div class="form-group">
-                            <label>Тип животного</label>
-                            <select class="form-control">
-                                <option>Баранина (Баран)</option>
-                                <option>КРС (Корова/Бык)</option>
-                                <option>Лошади (Конина)</option>
-                                <option>Верблюжатина</option>
-                                <option>Козы</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Категория</label>
-                            <select class="form-control">
-                                <option>Головы</option>
-                                <option>Ножки</option>
-                            </select>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-group" style="flex:1;">
-                                <label>Количество (шт)</label>
-                                <input type="number" class="form-control" placeholder="100">
-                            </div>
-                            <div class="form-group" style="flex:1;">
-                                <label>Общий вес (кг)</label>
-                                <input type="number" step="0.1" class="form-control" placeholder="150.5">
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label>Поставщик / Скотобойня</label>
-                            <input type="text" class="form-control" placeholder="ИП Ахметов / Бойня #2">
-                        </div>
-                        <button type="button" class="btn">Принять на склад сырья</button>
-                    </form>
-                </div>
-
-                <!-- Fast Transfer to Production -->
-                <div class="card">
-                    <div class="card-header">
-                        <div class="card-title">Передача в цех очистки</div>
-                    </div>
-                    <form>
-                        <div class="form-group">
-                            <label>Выберите партию со склада сырья</label>
-                            <select class="form-control">
-                                <option>Бараньи головы (350 шт доступно)</option>
-                                <option>Бараньи ножки (800 шт доступно)</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Количество для очистки (шт)</label>
-                            <input type="number" class="form-control" placeholder="50">
-                        </div>
-                        <button type="button" class="btn" style="background: var(--accent-amber);">Отправить в барабан очистки</button>
-                    </form>
-                </div>
-            </div>
         </div>
     </main>
+
+    <script>
+        function switchTab(tabId) {
+            // Hide all sections
+            document.querySelectorAll('.section').forEach(el => el.classList.remove('active'));
+            // Remove active class from menu
+            document.querySelectorAll('.menu-item').forEach(el => el.classList.remove('active'));
+            
+            // Show target section
+            document.getElementById(tabId).classList.add('active');
+            
+            // Highlight active menu item
+            event.currentTarget.classList.add('active');
+
+            // Update title
+            document.getElementById('page-title').innerText = event.currentTarget.innerText;
+        }
+    </script>
 </body>
 </html>

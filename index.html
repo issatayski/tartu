@@ -1,620 +1,904 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Управление Производством - Очистка Голов и Ножек</title>
-    <style>
-        :root {
-            --bg-dark: #121824;
-            --bg-card: #1e2738;
-            --bg-hover: #2a364f;
-            --accent: #3b82f6;
-            --accent-hover: #2563eb;
-            --text-main: #e2e8f0;
-            --text-muted: #94a3b8;
-            --border: #334155;
-            --success: #10b981;
-            --warning: #f59e0b;
-        }
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>BasZhilik ERP — учёт производства (головы и ножки)</title>
+<style>
+:root{
+  --sb:#1e2b3a; --sb2:#17222e; --sb-act:#2f9fdb;
+  --acc:#2f9fdb; --acc-d:#1c86bf; --acc-l:#e8f4fb;
+  --bg:#eef2f5; --card:#ffffff; --line:#e2e8ee;
+  --tx:#20303f; --mut:#7d8a97; --mut2:#9aa7b3;
+  --gr:#28a745; --gr-l:#e8f6ec;
+  --or:#f5a623; --or-l:#fdf3e2;
+  --rd:#e5484d; --rd-l:#fdeaea;
+  --vi:#7d5fc7; --vi-l:#f0ecfa;
+  --rad:6px; --sh:0 1px 3px rgba(24,50,71,.10);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font:14px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  color:var(--tx);background:var(--bg);-webkit-font-smoothing:antialiased;
+}
+a{color:inherit;text-decoration:none}
+button,input,select,textarea{font-family:inherit;font-size:14px;color:inherit}
+svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;flex:none}
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        }
+/* ---------- SIDEBAR ---------- */
+.sb{position:fixed;top:0;left:0;bottom:0;width:236px;background:var(--sb);color:#c8d4e0;display:flex;flex-direction:column;z-index:40}
+.sb .logo{display:flex;align-items:center;gap:10px;padding:16px 18px;border-bottom:1px solid rgba(255,255,255,.07)}
+.sb .logo b{color:#fff;font-size:15px;letter-spacing:.2px;display:block}
+.sb .logo span{font-size:11px;color:#8797a8}
+.logo-mark{width:34px;height:34px;border-radius:8px;background:linear-gradient(140deg,var(--acc),#1c6ea8);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:13px}
+.sb nav{flex:1;overflow-y:auto;padding:10px 0}
+.sb .grp{font-size:10.5px;text-transform:uppercase;letter-spacing:.8px;color:#657688;padding:14px 18px 6px}
+.sb a.item{display:flex;align-items:center;gap:11px;padding:9px 18px;font-size:13.5px;color:#c1cede;border-left:3px solid transparent;cursor:pointer}
+.sb a.item:hover{background:var(--sb2);color:#fff}
+.sb a.item.act{background:var(--sb2);color:#fff;border-left-color:var(--sb-act)}
+.sb a.item .cnt{margin-left:auto;background:rgba(255,255,255,.12);border-radius:10px;padding:1px 7px;font-size:11px}
+.sb a.item .cnt.warn{background:var(--rd);color:#fff}
+.sb .who{padding:12px 18px;border-top:1px solid rgba(255,255,255,.07);font-size:12px;color:#8797a8}
+.sb .who b{display:block;color:#fff;font-size:13px;font-weight:600}
 
-        body {
-            background-color: var(--bg-dark);
-            color: var(--text-main);
-            display: flex;
-            height: 100vh;
-            overflow: hidden;
-        }
+/* ---------- TOPBAR ---------- */
+.main{margin-left:236px;min-height:100%;display:flex;flex-direction:column}
+.top{position:sticky;top:0;z-index:30;background:#fff;border-bottom:1px solid var(--line);
+  display:flex;align-items:center;gap:12px;padding:0 20px;height:56px}
+.top h1{font-size:17px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.top .sub{font-size:12px;color:var(--mut);margin-left:2px}
+.spacer{flex:1}
+.rolebox{display:flex;align-items:center;gap:8px;background:var(--acc-l);border:1px solid #cfe7f6;border-radius:var(--rad);padding:5px 8px}
+.rolebox label{font-size:11px;color:var(--acc-d);text-transform:uppercase;letter-spacing:.5px}
+.rolebox select{border:0;background:transparent;font-weight:600;color:var(--acc-d);outline:none;cursor:pointer}
+.icobtn{width:36px;height:36px;border:1px solid var(--line);background:#fff;border-radius:var(--rad);display:flex;align-items:center;justify-content:center;color:var(--mut);cursor:pointer;position:relative}
+.icobtn:hover{color:var(--acc);border-color:#cfe7f6}
+.icobtn .dot{position:absolute;top:6px;right:7px;width:7px;height:7px;background:var(--rd);border-radius:50%}
+.ava{width:34px;height:34px;border-radius:50%;background:var(--vi-l);color:var(--vi);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px}
 
-        /* Sidebar */
-        aside {
-            width: 260px;
-            background-color: var(--bg-card);
-            border-right: 1px solid var(--border);
-            display: flex;
-            flex-direction: column;
-        }
+/* ---------- CONTENT ---------- */
+.wrap{padding:18px 20px 28px;flex:1}
+.row{display:flex;gap:14px;flex-wrap:wrap}
+.col{flex:1 1 320px;min-width:0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--rad);box-shadow:var(--sh);margin-bottom:14px;overflow:hidden}
+.card>.hd{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--line)}
+.card>.hd h3{font-size:14px;font-weight:600}
+.card>.hd .mini{font-size:12px;color:var(--mut)}
+.card>.bd{padding:14px}
+.card>.bd.tight{padding:0}
 
-        .brand {
-            padding: 20px;
-            font-size: 18px;
-            font-weight: bold;
-            color: var(--accent);
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:14px}
+.kpi{background:#fff;border:1px solid var(--line);border-radius:var(--rad);padding:13px 14px;box-shadow:var(--sh);position:relative;overflow:hidden}
+.kpi .lb{font-size:11.5px;color:var(--mut);text-transform:uppercase;letter-spacing:.4px}
+.kpi .vl{font-size:23px;font-weight:700;margin-top:6px;letter-spacing:-.4px}
+.kpi .df{font-size:12px;margin-top:4px;color:var(--mut)}
+.kpi .df.up{color:var(--gr)} .kpi .df.dn{color:var(--rd)}
+.kpi .ic{position:absolute;right:12px;top:12px;width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;background:var(--acc-l);color:var(--acc)}
+.kpi.g .ic{background:var(--gr-l);color:var(--gr)} .kpi.o .ic{background:var(--or-l);color:var(--or)}
+.kpi.r .ic{background:var(--rd-l);color:var(--rd)} .kpi.v .ic{background:var(--vi-l);color:var(--vi)}
 
-        .menu {
-            list-style: none;
-            padding: 15px 0;
-            flex: 1;
-        }
+table{width:100%;border-collapse:collapse}
+th{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--mut);text-align:left;
+   padding:10px 12px;background:#f7f9fb;border-bottom:1px solid var(--line);white-space:nowrap;font-weight:600}
+td{padding:11px 12px;border-bottom:1px solid #eef2f5;vertical-align:middle}
+tbody tr:hover{background:#f9fbfd}
+td.num,th.num{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+td .m{color:var(--mut);font-size:12px}
+.tw{overflow-x:auto;-webkit-overflow-scrolling:touch}
 
-        .menu-item {
-            padding: 12px 20px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            cursor: pointer;
-            color: var(--text-muted);
-            transition: all 0.2s;
-            font-size: 14px;
-        }
+.bdg{display:inline-flex;align-items:center;gap:5px;font-size:12px;padding:3px 9px;border-radius:20px;white-space:nowrap;font-weight:500}
+.bdg.g{background:var(--gr-l);color:#1c7a33} .bdg.o{background:var(--or-l);color:#a76c05}
+.bdg.r{background:var(--rd-l);color:#b3272c} .bdg.b{background:var(--acc-l);color:var(--acc-d)}
+.bdg.v{background:var(--vi-l);color:var(--vi)} .bdg.n{background:#eef2f5;color:var(--mut)}
 
-        .menu-item:hover, .menu-item.active {
-            background-color: var(--bg-hover);
-            color: #fff;
-            border-left: 4px solid var(--accent);
-        }
+.btn{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--acc);background:var(--acc);color:#fff;
+  padding:8px 14px;border-radius:var(--rad);cursor:pointer;font-weight:500;font-size:13.5px}
+.btn:hover{background:var(--acc-d);border-color:var(--acc-d)}
+.btn.gh{background:#fff;color:var(--tx);border-color:var(--line)}
+.btn.gh:hover{background:#f5f8fa;color:var(--acc);border-color:#cfe7f6}
+.btn.sm{padding:5px 10px;font-size:12.5px}
+.btn.gr{background:var(--gr);border-color:var(--gr)} .btn.gr:hover{background:#1f8c39;border-color:#1f8c39}
+.btn svg{width:16px;height:16px}
 
-        /* Main Content */
-        main {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.inp{border:1px solid var(--line);background:#fff;border-radius:var(--rad);padding:8px 11px;outline:none;min-width:0}
+.inp:focus{border-color:var(--acc);box-shadow:0 0 0 3px rgba(47,159,219,.13)}
+select.inp{cursor:pointer}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:12px;color:var(--mut);margin-bottom:5px}
+.field .inp{width:100%}
+.f2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 
-        header {
-            height: 60px;
-            background-color: var(--bg-card);
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 25px;
-        }
+.bars{display:flex;align-items:flex-end;gap:8px;height:150px;padding-top:8px}
+.bars .b{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:6px;height:100%}
+.bars .b i{display:block;width:100%;max-width:34px;background:linear-gradient(180deg,#5cb8e6,var(--acc));border-radius:3px 3px 0 0}
+.bars .b i.alt{background:linear-gradient(180deg,#9ed3ee,#6bbbe6)}
+.bars .b span{font-size:11px;color:var(--mut)}
+.leg{display:flex;gap:14px;font-size:12px;color:var(--mut);margin-top:10px}
+.leg i{width:10px;height:10px;border-radius:2px;display:inline-block;margin-right:5px}
 
-        .user-info {
-            font-size: 14px;
-            color: var(--text-muted);
-        }
+.pipe{display:flex;gap:10px;overflow-x:auto;padding-bottom:4px}
+.pipe .st{flex:1 0 190px;background:#f7f9fb;border:1px solid var(--line);border-radius:var(--rad);padding:10px}
+.pipe .st>h4{font-size:12px;text-transform:uppercase;letter-spacing:.4px;color:var(--mut);display:flex;justify-content:space-between;margin-bottom:9px}
+.pipe .cd{background:#fff;border:1px solid var(--line);border-left:3px solid var(--acc);border-radius:4px;padding:9px 10px;margin-bottom:8px;box-shadow:var(--sh);cursor:pointer}
+.pipe .cd b{font-size:13px;display:block}
+.pipe .cd .m{font-size:11.5px;color:var(--mut);margin-top:3px}
+.pipe .cd.warn{border-left-color:var(--or)} .pipe .cd.done{border-left-color:var(--gr)}
 
-        .content {
-            padding: 25px;
-            overflow-y: auto;
-            flex: 1;
-        }
+.list .it{display:flex;align-items:center;gap:11px;padding:11px 14px;border-bottom:1px solid #eef2f5}
+.list .it:last-child{border-bottom:0}
+.list .it .ic{width:34px;height:34px;border-radius:8px;background:var(--acc-l);color:var(--acc);display:flex;align-items:center;justify-content:center}
+.list .it .tx b{display:block;font-size:13.5px}
+.list .it .tx span{font-size:12px;color:var(--mut)}
+.list .it .rt{margin-left:auto;text-align:right;white-space:nowrap}
 
-        .section {
-            display: none;
-        }
+.prog{height:7px;background:#eef2f5;border-radius:5px;overflow:hidden;min-width:90px}
+.prog i{display:block;height:100%;background:var(--acc);border-radius:5px}
+.prog i.g{background:var(--gr)} .prog i.o{background:var(--or)} .prog i.r{background:var(--rd)}
 
-        .section.active {
-            display: block;
-        }
+.empty{padding:34px 16px;text-align:center;color:var(--mut)}
+.empty b{display:block;color:var(--tx);margin-bottom:4px}
 
-        /* Cards & Grids */
-        .grid-4 {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 20px;
-            margin-bottom: 25px;
-        }
+/* delivery cards (courier) */
+.dcard{border:1px solid var(--line);border-radius:var(--rad);padding:13px;margin-bottom:11px;background:#fff;box-shadow:var(--sh)}
+.dcard .t{display:flex;align-items:center;gap:9px;margin-bottom:8px}
+.dcard .t b{font-size:14.5px}
+.dcard .adr{font-size:13px;color:var(--mut);display:flex;gap:7px;align-items:flex-start;margin-bottom:9px}
+.dcard .ln{display:flex;justify-content:space-between;font-size:13px;padding:4px 0;border-top:1px dashed var(--line)}
+.dcard .acts{display:flex;gap:8px;margin-top:11px}
+.dcard .acts .btn{flex:1;justify-content:center}
 
-        .card {
-            background-color: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 20px;
-        }
+/* modal & sheet */
+.ov{position:fixed;inset:0;background:rgba(20,32,44,.5);z-index:60;display:none;align-items:center;justify-content:center;padding:16px}
+.ov.on{display:flex}
+.mdl{background:#fff;border-radius:8px;width:100%;max-width:520px;max-height:88vh;overflow:auto;box-shadow:0 12px 40px rgba(0,0,0,.25)}
+.mdl .h{display:flex;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line)}
+.mdl .h h3{font-size:15px;font-weight:600;flex:1}
+.mdl .b{padding:16px}
+.mdl .f{padding:12px 16px;border-top:1px solid var(--line);display:flex;gap:9px;justify-content:flex-end;background:#f7f9fb;position:sticky;bottom:0}
+.x{border:0;background:transparent;color:var(--mut);cursor:pointer;padding:4px}
+.drop{border:1.5px dashed #c9d6e0;border-radius:var(--rad);padding:18px;text-align:center;color:var(--mut);font-size:13px;cursor:pointer;background:#fbfcfd}
+.drop:hover{border-color:var(--acc);color:var(--acc);background:var(--acc-l)}
 
-        .card-title {
-            font-size: 13px;
-            color: var(--text-muted);
-            margin-bottom: 8px;
-            text-transform: uppercase;
-        }
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:86px;background:#20303f;color:#fff;padding:11px 18px;border-radius:22px;font-size:13.5px;z-index:80;opacity:0;pointer-events:none;transition:.25s}
+.toast.on{opacity:1;bottom:100px}
 
-        .card-value {
-            font-size: 24px;
-            font-weight: bold;
-        }
-
-        .card-sub {
-            font-size: 12px;
-            color: var(--success);
-            margin-top: 5px;
-        }
-
-        /* Forms & Controls */
-        .toolbar {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 20px;
-            gap: 15px;
-        }
-
-        .btn {
-            background-color: var(--accent);
-            color: #fff;
-            border: none;
-            padding: 10px 18px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 500;
-            font-size: 14px;
-        }
-
-        .btn:hover {
-            background-color: var(--accent-hover);
-        }
-
-        .form-inline {
-            display: flex;
-            gap: 10px;
-            background: var(--bg-card);
-            padding: 15px;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-            margin-bottom: 20px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-
-        input, select {
-            background-color: var(--bg-dark);
-            border: 1px solid var(--border);
-            color: var(--text-main);
-            padding: 9px 12px;
-            border-radius: 6px;
-            font-size: 14px;
-            outline: none;
-        }
-
-        input:focus, select:focus {
-            border-color: var(--accent);
-        }
-
-        /* Tables */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            background-color: var(--bg-card);
-            border-radius: 8px;
-            overflow: hidden;
-            border: 1px solid var(--border);
-        }
-
-        th, td {
-            padding: 14px 18px;
-            text-align: left;
-            border-bottom: 1px solid var(--border);
-            font-size: 14px;
-        }
-
-        th {
-            background-color: rgba(255, 255, 255, 0.03);
-            color: var(--text-muted);
-            font-weight: 600;
-        }
-
-        tr:hover {
-            background-color: var(--bg-hover);
-        }
-
-        .badge {
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 12px;
-            font-weight: 600;
-        }
-
-        .badge-raw { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
-        .badge-proc { background: rgba(59, 130, 246, 0.2); color: #3b82f6; }
-        .badge-clean { background: rgba(16, 185, 129, 0.2); color: #10b981; }
-        .badge-deliv { background: rgba(168, 85, 247, 0.2); color: #a855f7; }
-    </style>
+/* ---------- MOBILE ---------- */
+.bnav{display:none}
+.mtitle{display:none}
+@media(max-width:900px){
+  .sb{display:none}
+  .main{margin-left:0}
+  .top{padding:0 12px;height:52px}
+  .top h1{font-size:15.5px}
+  .top .sub{display:none}
+  .rolebox label{display:none}
+  .wrap{padding:12px 12px calc(78px + env(safe-area-inset-bottom))}
+  .kpis{grid-template-columns:repeat(2,1fr);gap:9px}
+  .kpi .vl{font-size:19px} .kpi .ic{display:none}
+  .f2{grid-template-columns:1fr}
+  th,td{padding:9px 10px}
+  .bnav{
+    display:flex;position:fixed;left:0;right:0;bottom:0;z-index:50;background:#fff;
+    border-top:1px solid var(--line);padding:6px 2px calc(6px + env(safe-area-inset-bottom));
+    box-shadow:0 -2px 12px rgba(24,50,71,.08)
+  }
+  .bnav a{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--mut2);font-size:10.5px;padding:4px 2px;cursor:pointer;position:relative}
+  .bnav a.act{color:var(--acc)}
+  .bnav a svg{width:22px;height:22px}
+  .bnav a .cnt{position:absolute;top:0;right:50%;margin-right:-20px;background:var(--rd);color:#fff;font-size:9.5px;border-radius:9px;padding:0 5px;line-height:15px}
+  .sheet{position:fixed;left:0;right:0;bottom:0;background:#fff;border-radius:14px 14px 0 0;z-index:70;
+    transform:translateY(102%);transition:.24s;padding-bottom:calc(14px + env(safe-area-inset-bottom));max-height:82vh;overflow:auto}
+  .sheet.on{transform:translateY(0)}
+  .sheet .gr{width:38px;height:4px;background:#dde5ec;border-radius:3px;margin:9px auto 4px}
+  .sheet .st{padding:12px 16px 6px;font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--mut)}
+  .sheet a{display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:1px solid #f0f4f7;font-size:14.5px}
+  .sheet a .ic{color:var(--acc)}
+  .sheet a .cnt{margin-left:auto;background:var(--rd);color:#fff;font-size:11px;border-radius:10px;padding:1px 7px}
+  .mdl{max-width:100%;border-radius:12px}
+  .pipe .st{flex:0 0 78%}
+  .hide-m{display:none!important}
+}
+@media(min-width:901px){ .sheet{display:none} .only-m{display:none!important} }
+</style>
 </head>
 <body>
 
-    <aside>
-        <div class="brand">
-            <span>🥩 MeatClean ERP</span>
-        </div>
-        <ul class="menu">
-            <li class="menu-item active" onclick="switchTab('dashboard')">📊 Дашборд / Мониторинг</li>
-            <li class="menu-item" onclick="switchTab('stock-raw')">📦 Склад Сырья (Грязный)</li>
-            <li class="menu-item" onclick="switchTab('processing')">⚙️ Очистка и Промывка</li>
-            <li class="menu-item" onclick="switchTab('stock-clean')">✨ Склад Готовой Продукции</li>
-            <li class="menu-item" onclick="switchTab('sales')">💰 Продажи и Заказы</li>
-            <li class="menu-item" onclick="switchTab('clients')">👥 Клиенты (Кафе/Рестораны)</li>
-            <li class="menu-item" onclick="switchTab('logistics')">🚚 Доставка и Самовывоз</li>
-            <li class="menu-item" onclick="switchTab('reports')">📈 Отчеты</li>
-        </ul>
-    </aside>
+<aside class="sb">
+  <div class="logo">
+    <div class="logo-mark">BJ</div>
+    <div><b>BasZhilik ERP</b><span>Цех очистки · Шымкент</span></div>
+  </div>
+  <nav id="sbnav"></nav>
+  <div class="who" id="sbwho"></div>
+</aside>
 
-    <main>
-        <header>
-            <h2 id="page-title">Дашборд / Мониторинг</h2>
-            <div class="user-info">Оператор: Цех №1 (Шымкент)</div>
-        </header>
+<div class="main">
+  <header class="top">
+    <button class="icobtn only-m" onclick="openSheet()" aria-label="Меню"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+    <div>
+      <h1 id="pgTitle">Дашборд</h1>
+      <div class="sub" id="pgSub">Сегодня, 27 августа 2026</div>
+    </div>
+    <div class="spacer"></div>
+    <div class="rolebox">
+      <label>Роль</label>
+      <select id="roleSel" onchange="setRole(this.value)">
+        <option value="boss">Руководство</option>
+        <option value="master">Начальник смены</option>
+        <option value="courier">Доставщик</option>
+      </select>
+    </div>
+    <button class="icobtn hide-m" aria-label="Уведомления"><svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 1 0-12 0c0 6-2 7-2 7h16s-2-1-2-7"/><path d="M13.7 19a2 2 0 0 1-3.4 0"/></svg><span class="dot"></span></button>
+    <div class="ava hide-m" id="ava">РК</div>
+  </header>
+  <div class="wrap" id="content"></div>
+</div>
 
-        <div class="content">
+<nav class="bnav" id="bnav"></nav>
 
-            <!-- DASHBOARD -->
-            <div id="dashboard" class="section active">
-                <div class="grid-4">
-                    <div class="card">
-                        <div class="card-title">Сырье на складе</div>
-                        <div class="card-value">1,240 шт</div>
-                        <div class="card-sub">~1,850 кг (Баранина)</div>
-                    </div>
-                    <div class="card">
-                        <div class="card-title">В процессе очистки</div>
-                        <div class="card-value">350 шт</div>
-                        <div class="card-sub">Загрузка оборудования: 85%</div>
-                    </div>
-                    <div class="card">
-                        <div class="card-title">Готовая продукция</div>
-                        <div class="card-value">890 шт</div>
-                        <div class="card-sub">Готово к отгрузке</div>
-                    </div>
-                    <div class="card">
-                        <div class="card-title">Отгружено за сегодня</div>
-                        <div class="card-value">420 шт</div>
-                        <div class="card-sub">Выручка: 1,260,000 ₸</div>
-                    </div>
-                </div>
+<div class="sheet" id="sheet">
+  <div class="gr"></div>
+  <div class="st">Все разделы</div>
+  <div id="sheetItems"></div>
+</div>
+<div class="ov" id="sheetOv" onclick="closeSheet()" style="z-index:65"></div>
 
-                <h3>Текущая загрузка оборудования (Опалка / Мойка)</h3>
-                <br>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Линия / Оборудование</th>
-                            <th>Тип сырья</th>
-                            <th>Загружено (Шт / Кг)</th>
-                            <th>Статус</th>
-                            <th>Время до завершения</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>Барабан опалочный №1</td>
-                            <td>Бараньи головы</td>
-                            <td>100 шт / 150 кг</td>
-                            <td><span class="badge badge-proc">Опалка шерсти</span></td>
-                            <td>12 мин</td>
-                        </tr>
-                        <tr>
-                            <td>Моечный комплекс №2</td>
-                            <td>Бараньи ножки</td>
-                            <td>200 шт / 80 кг</td>
-                            <td><span class="badge badge-proc">Промывка водой</span></td>
-                            <td>5 мин</td>
-                        </tr>
-                        <tr>
-                            <td>Барабан опалочный №2 (Резерв)</td>
-                            <td>Коровьи головы (Тест)</td>
-                            <td>0 шт / 0 кг</td>
-                            <td><span class="badge badge-clean">Простой / Готов</span></td>
-                            <td>—</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+<div class="ov" id="modalOv">
+  <div class="mdl">
+    <div class="h"><h3 id="mTitle">Форма</h3><button class="x" onclick="closeModal()"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <div class="b" id="mBody"></div>
+    <div class="f">
+      <button class="btn gh" onclick="closeModal()">Отмена</button>
+      <button class="btn" id="mSave" onclick="saveModal()">Сохранить</button>
+    </div>
+  </div>
+</div>
 
-            <!-- RAW STOCK -->
-            <div id="stock-raw" class="section">
-                <div class="toolbar">
-                    <h3>Пополнение склада (Неочищенное сырье)</h3>
-                </div>
+<div class="toast" id="toast"></div>
 
-                <div class="form-inline">
-                    <select>
-                        <option>Категория скота</option>
-                        <option selected>Баранина</option>
-                        <option>Коничина</option>
-                        <option>КРС (Коровы)</option>
-                        <option>Верблюжатина</option>
-                        <option>Козы</option>
-                    </select>
-                    <select>
-                        <option>Тип частeй</option>
-                        <option>Головы</option>
-                        <option>Ножки</option>
-                        <option>Комплект (1 гол + 4 ножки)</option>
-                    </select>
-                    <input type="number" placeholder="Количество (шт)">
-                    <input type="number" placeholder="Общий вес (кг)">
-                    <input type="text" placeholder="Поставщик / Ферма">
-                    <button class="btn">+ Принять на склад</button>
-                </div>
+<script>
+/* ==================== ИКОНКИ ==================== */
+const I = {
+  home:'<path d="M3 10.6L12 3.4l9 7.2V21H3z"/><path d="M9.5 21v-6h5v6"/>',
+  raw:'<path d="M3 7.2l9-4 9 4v9.6l-9 4-9-4z"/><path d="M3 7.2l9 4 9-4M12 11.2V21"/>',
+  prod:'<path d="M12 8.6a3.4 3.4 0 1 0 0 6.8 3.4 3.4 0 0 0 0-6.8z"/><path d="M12 2.6v2.6M12 18.8v2.6M2.6 12h2.6M18.8 12h2.6M5.3 5.3l1.9 1.9M16.8 16.8l1.9 1.9M18.7 5.3l-1.9 1.9M7.2 16.8l-1.9 1.9"/>',
+  fin:'<path d="M4 8h16v12H4z"/><path d="M4 8l2.2-4h11.6L20 8M12 8v12"/>',
+  sales:'<path d="M3.4 5h2.2l2.6 9.6h9L20 8.2H7"/><path d="M9.6 19.4a1.3 1.3 0 1 0 0-2.6 1.3 1.3 0 0 0 0 2.6zM17.2 19.4a1.3 1.3 0 1 0 0-2.6 1.3 1.3 0 0 0 0 2.6z"/>',
+  cli:'<path d="M8.6 11.4a3.4 3.4 0 1 0 0-6.8 3.4 3.4 0 0 0 0 6.8z"/><path d="M2.4 20c0-3.2 2.8-5.8 6.2-5.8s6.2 2.6 6.2 5.8"/><path d="M16.4 5.2a3 3 0 0 1 0 5.9M17.6 14.6c2.4.6 4 2.6 4 5.4"/>',
+  del:'<path d="M3 7h11v10H3z"/><path d="M14 10.4h3.6L21 13.6V17h-7z"/><path d="M7.4 19.6a1.4 1.4 0 1 0 0-2.8 1.4 1.4 0 0 0 0 2.8zM17.6 19.6a1.4 1.4 0 1 0 0-2.8 1.4 1.4 0 0 0 0 2.8z"/>',
+  exp:'<path d="M3 7.4h15a2 2 0 0 1 2 2v7.2a2 2 0 0 1-2 2H3z"/><path d="M3 7.4V5.6h13M16.4 13h3.2"/>',
+  rep:'<path d="M4 20V10.4M10 20V4M16 20v-7.2M21.6 20H2.4"/>',
+  usr:'<path d="M12 11.6a3.6 3.6 0 1 0 0-7.2 3.6 3.6 0 0 0 0 7.2z"/><path d="M4.4 20.4c0-3.6 3.4-6.4 7.6-6.4s7.6 2.8 7.6 6.4"/>',
+  set:'<path d="M4 7h16M4 12h16M4 17h16"/><path d="M9 7a1.4 1.4 0 1 0 0-.1M16 12a1.4 1.4 0 1 0 0-.1M8 17a1.4 1.4 0 1 0 0-.1"/>',
+  shift:'<path d="M9 4.2h6v2.6H9z"/><path d="M6.4 5.4h2v2h7.2v-2h2v15.2H6.4z"/><path d="M9.4 12.4l1.8 1.8 3.6-3.6"/>',
+  route:'<path d="M9 4L3 6.8v13.4L9 17.4l6 2.8 6-2.8V3.8L15 6.6z"/><path d="M9 4v13.4M15 6.6V20"/>',
+  more:'<path d="M12 6.6a1.2 1.2 0 1 0 0-.1M12 12.2a1.2 1.2 0 1 0 0-.1M12 17.8a1.2 1.2 0 1 0 0-.1"/>',
+  money:'<path d="M12 3.4v17.2"/><path d="M16.4 7.2c-.8-1.3-2.4-2-4.4-2-2.6 0-4.2 1.2-4.2 3s1.6 2.6 4.2 3.2c2.8.6 4.6 1.4 4.6 3.4s-1.9 3.2-4.6 3.2c-2.3 0-4-.8-4.8-2.2"/>',
+  clock:'<path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z"/><path d="M12 7.4V12l3 1.8"/>',
+  check:'<path d="M20 6.6L9.4 17.2 4 11.8"/>',
+  plus:'<path d="M12 5v14M5 12h14"/>',
+  water:'<path d="M12 3.4s6 6.6 6 10.6a6 6 0 0 1-12 0c0-4 6-10.6 6-10.6z"/>',
+  fire:'<path d="M12 21c3.6 0 6-2.4 6-5.6 0-4.4-4-6.4-3-10.4-3 1-6 4.4-6 9 0 1.6.6 2.6 1.4 3.2.4-2 1.6-3.4 1.6-3.4s-1.2 3.4 0 5.2c.6.9 0 2-.6 2z"/>',
+  box:'<path d="M20.4 7.6l-8.4-4.4-8.4 4.4v8.8l8.4 4.4 8.4-4.4z"/><path d="M3.6 7.6l8.4 4.4 8.4-4.4M12 12v9"/>',
+  dl:'<path d="M12 3.6v11M7.6 10.2L12 14.6l4.4-4.4"/><path d="M4 17.4v2.2h16v-2.2"/>'
+};
+const ic = (n,c='') => `<svg viewBox="0 0 24 24" class="${c}">${I[n]||I.more}</svg>`;
 
-                <table>
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Дата прихода</th>
-                            <th>Вид скота</th>
-                            <th>Тип</th>
-                            <th>Кол-во (шт)</th>
-                            <th>Вес (кг)</th>
-                            <th>Поставщик</th>
-                            <th>Статус</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            #RAW-102
-                            <td>27.08.2026 14:20</td>
-                            <td>Баранина</td>
-                            <td>Головы</td>
-                            <td>500</td>
-                            <td>750</td>
-                            <td>КХ "Бастау"</td>
-                            <td><span class="badge badge-raw">На складе</span></td>
-                        </tr>
-                        <tr>
-                            #RAW-101
-                            <td>27.08.2026 10:00</td>
-                            <td>Баранина</td>
-                            <td>Ножки</td>
-                            <td>1200</td>
-                            <td>480</td>
-                            <td>ИП Ахметов</td>
-                            <td><span class="badge badge-proc">Частично в работе</span></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+/* ==================== ДАННЫЕ (демо) ==================== */
+const F = n => new Intl.NumberFormat('ru-RU').format(Math.round(n));
+const T = n => F(n)+' ₸';
 
-            <!-- PROCESSING -->
-            <div id="processing" class="section">
-                <h3>Передача сырья в цех очистки</h3>
-                <br>
-                <div class="form-inline">
-                    <select>
-                        <option>Выберите партию сырья</option>
-                        <option>#RAW-102 - Бараньи головы (Доступно: 500 шт)</option>
-                    </select>
-                    <input type="number" placeholder="Кол-во для очистки (шт)">
-                    <select>
-                        <option>Назначить на линию</option>
-                        <option>Барабан опалочный №1</option>
-                        <option>Барабан опалочный №2</option>
-                    </select>
-                    <button class="btn">Запустить процесс</button>
-                </div>
+const S = {
+  raw:[
+    {id:'ПР-1048',date:'27.08.2026',sup:'Убойный цех «Береке»',h:180,l:640,price:352000,left:{h:180,l:640},st:'Принято'},
+    {id:'ПР-1047',date:'26.08.2026',sup:'ИП Абдуллаев (Сайрам)',h:120,l:400,price:236000,left:{h:35,l:120},st:'В работе'},
+    {id:'ПР-1046',date:'25.08.2026',sup:'Рынок Аль-Фараби',h:90,l:360,price:187000,left:{h:0,l:0},st:'Списано'},
+    {id:'ПР-1045',date:'24.08.2026',sup:'Убойный цех «Береке»',h:200,l:700,price:398000,left:{h:0,l:40},st:'Списано'},
+    {id:'ПР-1044',date:'23.08.2026',sup:'КХ «Достык» (Толеби)',h:75,l:300,price:154000,left:{h:0,l:0},st:'Списано'}
+  ],
+  prod:[
+    {id:'СМ-0318',date:'27.08.2026',shift:'Дневная',master:'Ерлан Жақсылық',inH:120,inL:400,outH:78,outL:265,def:3,stage:'Промывка',st:'В работе'},
+    {id:'СМ-0317',date:'26.08.2026',shift:'Ночная',master:'Асхат Нұрлан',inH:200,inL:700,outH:194,outL:688,def:6,stage:'Готово',st:'Завершена'},
+    {id:'СМ-0316',date:'26.08.2026',shift:'Дневная',master:'Ерлан Жақсылық',inH:90,inL:360,outH:88,outL:352,def:2,stage:'Готово',st:'Завершена'},
+    {id:'СМ-0315',date:'25.08.2026',shift:'Ночная',master:'Асхат Нұрлан',inH:75,inL:300,outH:71,outL:291,def:4,stage:'Готово',st:'Завершена'}
+  ],
+  pipe:{
+    'Приёмка сырья':[{t:'ПР-1048',m:'180 голов · 640 ножек',c:''}],
+    'Опалка / очистка':[{t:'СМ-0318 · партия 2',m:'42 головы · 135 ножек',c:''},{t:'СМ-0318 · партия 3',m:'ожидает печь',c:'warn'}],
+    'Промывка':[{t:'СМ-0318 · партия 1',m:'78 голов · 265 ножек',c:''}],
+    'Контроль качества':[{t:'СМ-0317 · партия 4',m:'брак 6 шт · пересмотр',c:'warn'}],
+    'На складе ГП':[{t:'СМ-0317',m:'194 головы · 688 ножек',c:'done'},{t:'СМ-0316',m:'88 голов · 352 ножки',c:'done'}]
+  },
+  fin:[
+    {n:'Головы очищенные, 1 сорт',q:296,res:120,u:'шт',d:'27.08.2026',srok:'до 30.08'},
+    {n:'Головы очищенные, 2 сорт',q:44,res:0,u:'шт',d:'26.08.2026',srok:'до 29.08'},
+    {n:'Ножки очищенные, 1 сорт',q:1105,res:420,u:'шт',d:'27.08.2026',srok:'до 30.08'},
+    {n:'Ножки очищенные, 2 сорт',q:98,res:0,u:'шт',d:'26.08.2026',srok:'до 29.08'},
+    {n:'Комплект «Бас-жілік» (1 гол + 4 нож)',q:60,res:24,u:'компл',d:'27.08.2026',srok:'до 30.08'}
+  ],
+  ord:[
+    {id:'З-2214',date:'27.08.2026',cli:'Кафе «Мерей»',it:'Головы 40 · Ножки 160',sum:232000,pay:'Долг',type:'Доставка',st:'Собирается'},
+    {id:'З-2213',date:'27.08.2026',cli:'Ресторан «Шымкент»',it:'Головы 25 · Ножки 100',sum:145000,pay:'Оплачен',type:'Доставка',st:'В пути'},
+    {id:'З-2212',date:'27.08.2026',cli:'Той-хана «Алтын Той»',it:'Комплекты 24',sum:187200,pay:'Частично',type:'Самовывоз',st:'Новый'},
+    {id:'З-2211',date:'26.08.2026',cli:'Кафе «Достык»',it:'Ножки 240',sum:168000,pay:'Оплачен',type:'Доставка',st:'Выполнен'},
+    {id:'З-2210',date:'26.08.2026',cli:'ИП Сапарбаев (рынок)',it:'Головы 60 · Ножки 200',sum:320000,pay:'Оплачен',type:'Самовывоз',st:'Выполнен'},
+    {id:'З-2209',date:'25.08.2026',cli:'Кафе «Мерей»',it:'Головы 30 · Ножки 120',sum:174000,pay:'Долг',type:'Доставка',st:'Выполнен'}
+  ],
+  cli:[
+    {n:'Кафе «Мерей»',t:'Кафе',ph:'+7 701 234 56 78',adr:'Шымкент, ул. Байтурсынова 41',o:38,turn:4820000,debt:406000},
+    {n:'Ресторан «Шымкент»',t:'Ресторан',ph:'+7 705 811 22 09',adr:'Шымкент, пр. Тауке хана 12',o:26,turn:3610000,debt:0},
+    {n:'Той-хана «Алтын Той»',t:'Той-хана',ph:'+7 747 500 71 33',adr:'Шымкент, ул. Дулати 88',o:19,turn:2940000,debt:93600},
+    {n:'Кафе «Достык»',t:'Кафе',ph:'+7 702 145 90 12',adr:'Сайрам, ул. Абая 5',o:31,turn:2180000,debt:0},
+    {n:'ИП Сапарбаев (рынок)',t:'Опт',ph:'+7 700 908 44 51',adr:'Рынок Самал, павильон 14',o:44,turn:6120000,debt:0}
+  ],
+  del:[
+    {id:'Д-806',ord:'З-2213',cli:'Ресторан «Шымкент»',adr:'пр. Тауке хана 12',cour:'Бақыт Сейітов',time:'14:30',sum:145000,pay:'Оплачен',st:'В пути'},
+    {id:'Д-807',ord:'З-2214',cli:'Кафе «Мерей»',adr:'ул. Байтурсынова 41',cour:'Бақыт Сейітов',time:'16:00',sum:232000,pay:'Долг · взять оплату',st:'Ожидает'},
+    {id:'Д-808',ord:'З-2209',cli:'Кафе «Достык»',adr:'Сайрам, ул. Абая 5',cour:'Нұрлан Оспан',time:'17:15',sum:174000,pay:'Долг · взять оплату',st:'Ожидает'},
+    {id:'Д-805',ord:'З-2211',cli:'Кафе «Достык»',adr:'Сайрам, ул. Абая 5',cour:'Бақыт Сейітов',time:'11:20',sum:168000,pay:'Оплачен',st:'Доставлен'}
+  ],
+  exp:[
+    {date:'27.08.2026',cat:'Газ',sum:86000,note:'Опалочная печь, баллоны 8 шт',rc:1,u:'Ерлан Ж.'},
+    {date:'27.08.2026',cat:'Вода',sum:24500,note:'Промывочный цех, счётчик 4412',rc:1,u:'Ерлан Ж.'},
+    {date:'26.08.2026',cat:'Электроэнергия',sum:61200,note:'Август, показания 18450',rc:1,u:'Руководство'},
+    {date:'26.08.2026',cat:'ГСМ',sum:32000,note:'Газель, доставка по городу',rc:1,u:'Бақыт С.'},
+    {date:'25.08.2026',cat:'Хозрасходы',sum:18700,note:'Перчатки, щётки, мешки',rc:0,u:'Асхат Н.'},
+    {date:'25.08.2026',cat:'Аренда',sum:250000,note:'Цех, 120 м², август',rc:1,u:'Руководство'},
+    {date:'24.08.2026',cat:'Зарплата',sum:420000,note:'Аванс, 6 работников',rc:0,u:'Руководство'}
+  ],
+  usr:[
+    {n:'Рустем Қалиев',r:'Руководство',ph:'+7 701 000 11 22',st:'Активен'},
+    {n:'Ерлан Жақсылық',r:'Начальник смены',ph:'+7 705 333 44 55',st:'Активен'},
+    {n:'Асхат Нұрлан',r:'Начальник смены',ph:'+7 707 222 33 44',st:'Активен'},
+    {n:'Бақыт Сейітов',r:'Доставщик',ph:'+7 747 111 22 33',st:'Активен'},
+    {n:'Нұрлан Оспан',r:'Доставщик',ph:'+7 700 555 66 77',st:'Активен'},
+    {n:'Гүлнар Ахметова',r:'Оператор цеха',ph:'+7 702 888 99 00',st:'Отпуск'}
+  ]
+};
 
-                <h3>Активные процессы</h3>
-                <br>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Партия</th>
-                            <th>Тип</th>
-                            <th>Количество</th>
-                            <th>Операция</th>
-                            <th>Потери веса (Шерсть/Грязь)</th>
-                            <th>Действие</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>#PROC-88</td>
-                            <td>Бараньи головы</td>
-                            <td>150 шт</td>
-                            <td>Опалка / Сбитие шерсти</td>
-                            <td>Ожидается (~10%)</td>
-                            <td><button class="btn" style="padding: 4px 8px; font-size:12px;">Завершить и промыть</button></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+/* ==================== ХЕЛПЕРЫ ==================== */
+const badge = (t)=>{
+  const m={'Принято':'b','В работе':'o','Списано':'n','Завершена':'g','Оплачен':'g','Долг':'r','Частично':'o',
+    'Доставка':'b','Самовывоз':'v','Новый':'n','Собирается':'o','В пути':'b','Выполнен':'g','Доставлен':'g',
+    'Ожидает':'o','Активен':'g','Отпуск':'n','Готово':'g','Промывка':'b','Опалка':'o'};
+  return `<span class="bdg ${m[t]||'n'}">${t}</span>`;
+};
+const tbl = (h,rows)=>`<div class="tw"><table><thead><tr>${h.map(x=>`<th class="${/^\+/.test(x)?'num':''}">${x.replace(/^\+/,'')}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table></div>`;
+const kpi = (a)=>`<div class="kpis">${a.map(k=>`<div class="kpi ${k.c||''}"><div class="ic">${ic(k.i)}</div><div class="lb">${k.l}</div><div class="vl">${k.v}</div><div class="df ${k.d||''}">${k.s||''}</div></div>`).join('')}</div>`;
 
-            <!-- CLEAN STOCK -->
-            <div id="stock-clean" class="section">
-                <h3>Склад готовой (Очищенной) продукции</h3>
-                <br>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Вид продукции</th>
-                            <th>В наличии (шт)</th>
-                            <th>Чистый вес (кг)</th>
-                            <th>Готовность</th>
-                            <th>Забронировано под заказы</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>Голова баранья (Очищенная, промытая)</td>
-                            <td>450 шт</td>
-                            <td>580 кг</td>
-                            <td><span class="badge badge-clean">100% Готово</span></td>
-                            <td>200 шт</td>
-                        </tr>
-                        <tr>
-                            <td>Ножки бараньи (Очищенные)</td>
-                            <td>1,800 шт</td>
-                            <td>540 кг</td>
-                            <td><span class="badge badge-clean">100% Готово</span></td>
-                            <td>600 шт</td>
-                        </tr>
-                        <tr>
-                            <td>Голова конская (Тестовая обработка)</td>
-                            <td>5 шт</td>
-                            <td>65 кг</td>
-                            <td><span class="badge badge-clean">100% Готово</span></td>
-                            <td>0 шт</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+/* ==================== СТРАНИЦЫ ==================== */
+const P = {};
 
-            <!-- SALES -->
-            <div id="sales" class="section">
-                <div class="toolbar">
-                    <h3>Заказы и Продажи</h3>
-                    <button class="btn">+ Создать заказ</button>
-                </div>
+P.dash = ()=>{
+  const rows = S.ord.slice(0,5).map(o=>`<tr><td><b>${o.id}</b><div class="m">${o.date}</div></td><td>${o.cli}<div class="m">${o.it}</div></td>
+    <td class="num">${T(o.sum)}</td><td>${badge(o.pay)}</td><td>${badge(o.st)}</td></tr>`).join('');
+  const debt = S.cli.filter(c=>c.debt>0).map(c=>`<div class="it"><div class="ic">${ic('cli')}</div><div class="tx"><b>${c.n}</b><span>${c.ph}</span></div><div class="rt"><b style="color:var(--rd)">${T(c.debt)}</b></div></div>`).join('');
+  const days=[['21',62,58],['22',71,66],['23',75,71],['24',200,194],['25',75,71],['26',290,282],['27',120,78]];
+  const mx=300;
+  return `
+  ${kpi([
+    {l:'Сырьё на складе',v:'215 гол / 760 нож',s:'2 партии не в работе',i:'raw'},
+    {l:'Готовая продукция',v:'340 гол / 1 203 нож',s:'резерв под заказы 540 шт',i:'fin',c:'g'},
+    {l:'Выход за август',v:'96,4 %',s:'+1,2 % к июлю',d:'up',i:'prod',c:'v'},
+    {l:'Выручка за август',v:T(7420000),s:'+18 % к июлю',d:'up',i:'money',c:'g'},
+    {l:'Расходы за август',v:T(2186400),s:'коммуналка 24 %',i:'exp',c:'o'},
+    {l:'Долг клиентов',v:T(499600),s:'3 клиента просрочка',d:'dn',i:'sales',c:'r'}
+  ])}
+  <div class="row">
+    <div class="col" style="flex:2 1 480px">
+      <div class="card"><div class="hd"><h3>Переработка по дням, шт</h3><div class="spacer"></div><span class="mini">21–27 августа</span></div>
+        <div class="bd"><div class="bars">${days.map(d=>`<div class="b"><div style="display:flex;align-items:flex-end;gap:3px;width:100%;height:100%;justify-content:center"><i style="height:${d[1]/mx*100}%;max-width:15px"></i><i class="alt" style="height:${d[2]/mx*100}%;max-width:15px"></i></div><span>${d[0]}.08</span></div>`).join('')}</div>
+        <div class="leg"><span><i style="background:var(--acc)"></i>Принято в работу</span><span><i style="background:#9ed3ee"></i>Сдано на склад ГП</span></div></div></div>
+      <div class="card"><div class="hd"><h3>Последние заказы</h3><div class="spacer"></div><button class="btn sm gh" onclick="go('sales')">Все заказы</button></div>
+        <div class="bd tight">${tbl(['Заказ','Клиент','+Сумма','Оплата','Статус'],rows)}</div></div>
+    </div>
+    <div class="col">
+      <div class="card"><div class="hd"><h3>Смена сейчас</h3><div class="spacer"></div>${badge('В работе')}</div>
+        <div class="bd">
+          <div style="font-size:13px;color:var(--mut);margin-bottom:4px">СМ-0318 · Дневная · Ерлан Жақсылық</div>
+          <div style="display:flex;justify-content:space-between;margin:12px 0 4px;font-size:13px"><span>Головы</span><b>78 / 120</b></div>
+          <div class="prog"><i style="width:65%"></i></div>
+          <div style="display:flex;justify-content:space-between;margin:12px 0 4px;font-size:13px"><span>Ножки</span><b>265 / 400</b></div>
+          <div class="prog"><i style="width:66%"></i></div>
+          <div style="display:flex;justify-content:space-between;margin:12px 0 4px;font-size:13px"><span>Брак</span><b style="color:var(--rd)">3 шт (0,6 %)</b></div>
+          <div class="prog"><i class="r" style="width:6%"></i></div>
+        </div></div>
+      <div class="card"><div class="hd"><h3>Долги клиентов</h3></div><div class="bd tight list">${debt}</div></div>
+      <div class="card"><div class="hd"><h3>Расходы за неделю</h3><div class="spacer"></div><button class="btn sm gh" onclick="expModal()">${ic('plus')}Добавить</button></div>
+        <div class="bd tight list">
+          <div class="it"><div class="ic">${ic('fire')}</div><div class="tx"><b>Газ (опалка)</b><span>8 баллонов</span></div><div class="rt"><b>${T(86000)}</b></div></div>
+          <div class="it"><div class="ic">${ic('water')}</div><div class="tx"><b>Вода (промывка)</b><span>счётчик 4412</span></div><div class="rt"><b>${T(24500)}</b></div></div>
+          <div class="it"><div class="ic">${ic('exp')}</div><div class="tx"><b>Электроэнергия</b><span>август</span></div><div class="rt"><b>${T(61200)}</b></div></div>
+          <div class="it"><div class="ic">${ic('del')}</div><div class="tx"><b>ГСМ</b><span>доставка по городу</span></div><div class="rt"><b>${T(32000)}</b></div></div>
+        </div></div>
+    </div>
+  </div>`;
+};
 
-                <table>
-                    <thead>
-                        <tr>
-                            <th>№ Заказа</th>
-                            <th>Клиент</th>
-                            <th>Состав заказа</th>
-                            <th>Сумма</th>
-                            <th>Тип получения</th>
-                            <th>Статус оплаты</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>#ORD-501</td>
-                            <td>Ресторан "Rixos Shymkent"</td>
-                            <td>Головы бараньи (30 шт), Ножки (120 шт)</td>
-                            <td>180,000 ₸</td>
-                            <td><span class="badge badge-deliv">Доставка курьером</span></td>
-                            <td><span class="badge badge-clean">Оплачено</span></td>
-                        </tr>
-                        <tr>
-                            <td>#ORD-502</td>
-                            <td>Кафе "Жулдыз"</td>
-                            <td>Головы бараньи (10 шт)</td>
-                            <td>35,000 ₸</td>
-                            <td><span class="badge badge-raw">Самовывоз</span></td>
-                            <td><span class="badge badge-raw">Ожидает оплаты</span></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+P.raw = ()=>{
+  const rows=S.raw.map(r=>`<tr>
+    <td><b>${r.id}</b><div class="m">${r.date}</div></td>
+    <td>${r.sup}</td>
+    <td class="num">${F(r.h)}</td><td class="num">${F(r.l)}</td>
+    <td class="num">${T(r.price)}</td>
+    <td class="num">${r.left.h?F(r.left.h)+' / '+F(r.left.l):'—'}</td>
+    <td>${badge(r.st)}</td>
+    <td class="num"><button class="btn sm gh" onclick="toast('Партия ${r.id} передана в цех')">В работу</button></td></tr>`).join('');
+  return `
+  ${kpi([
+    {l:'Головы неочищенные',v:'215 шт',s:'2 партии',i:'raw'},
+    {l:'Ножки неочищенные',v:'760 шт',s:'2 партии',i:'raw'},
+    {l:'Сумма закупа, август',v:T(4318000),s:'18 партий',i:'money',c:'o'},
+    {l:'Средняя цена головы',v:T(1520),s:'−3 % к июлю',d:'up',i:'exp',c:'g'}
+  ])}
+  <div class="filters">
+    <button class="btn" onclick="rawModal()">${ic('plus')}Приход сырья</button>
+    <input class="inp" placeholder="Поиск по партии или поставщику" style="flex:1 1 220px">
+    <select class="inp"><option>Все статусы</option><option>Принято</option><option>В работе</option><option>Списано</option></select>
+    <select class="inp"><option>Август 2026</option><option>Июль 2026</option></select>
+    <button class="btn gh hide-m">${ic('dl')}Выгрузить</button>
+  </div>
+  <div class="card"><div class="hd"><h3>Приходы неочищенного сырья</h3><div class="spacer"></div><span class="mini">${S.raw.length} записей</span></div>
+    <div class="bd tight">${tbl(['Партия','Поставщик','+Головы','+Ножки','+Сумма','+Остаток г/н','Статус','+'],rows)}</div></div>`;
+};
 
-            <!-- CLIENTS -->
-            <div id="clients" class="section">
-                <div class="toolbar">
-                    <h3>База клиентов (Кафе, Рестораны, Частные лица)</h3>
-                    <button class="btn">+ Добавить клиента</button>
-                </div>
+P.prod = ()=>{
+  const cols=Object.entries(S.pipe).map(([k,v])=>`<div class="st"><h4>${k}<span>${v.length}</span></h4>
+    ${v.map(c=>`<div class="cd ${c.c}"><b>${c.t}</b><div class="m">${c.m}</div></div>`).join('')||'<div style="font-size:12px;color:var(--mut2);padding:6px 2px">пусто</div>'}</div>`).join('');
+  const rows=S.prod.map(p=>{
+    const inn=p.inH+p.inL, out=p.outH+p.outL, pr=Math.round(out/inn*100);
+    return `<tr><td><b>${p.id}</b><div class="m">${p.date} · ${p.shift}</div></td>
+      <td>${p.master}</td>
+      <td class="num">${F(p.inH)} / ${F(p.inL)}</td>
+      <td class="num">${F(p.outH)} / ${F(p.outL)}</td>
+      <td class="num" style="color:${p.def>5?'var(--rd)':'var(--tx)'}">${p.def}</td>
+      <td><div style="display:flex;align-items:center;gap:8px"><div class="prog"><i class="${pr>93?'g':pr>85?'o':'r'}" style="width:${pr}%"></i></div><b>${pr}%</b></div></td>
+      <td>${badge(p.stage)}</td><td>${badge(p.st)}</td></tr>`;
+  }).join('');
+  return `
+  ${kpi([
+    {l:'В цехе сейчас',v:'42 гол / 135 нож',s:'СМ-0318, дневная',i:'prod'},
+    {l:'Очищено сегодня',v:'78 гол / 265 нож',s:'план 120 / 400',i:'check',c:'g'},
+    {l:'Выход сегодня',v:'65 %',s:'смена не закрыта',i:'rep',c:'o'},
+    {l:'Брак сегодня',v:'3 шт',s:'0,6 % от партии',i:'exp',c:'r'}
+  ])}
+  <div class="filters">
+    <button class="btn" onclick="prodModal()">${ic('plus')}Взять партию в работу</button>
+    <button class="btn gh" onclick="toast('Смена СМ-0318 закрыта, остатки списаны на склад ГП')">${ic('check')}Закрыть смену</button>
+  </div>
+  <div class="card"><div class="hd"><h3>Процесс: очистка от шерсти и промывка</h3><div class="spacer"></div><span class="mini only-m" style="font-size:11px">листайте вбок →</span></div>
+    <div class="bd"><div class="pipe">${cols}</div></div></div>
+  <div class="card"><div class="hd"><h3>Журнал смен</h3></div>
+    <div class="bd tight">${tbl(['Смена','Начальник','+Принято г/н','+Сдано г/н','+Брак','Выход','Этап','Статус'],rows)}</div></div>`;
+};
 
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Название / Имя</th>
-                            <th>Тип</th>
-                            <th>Телефон</th>
-                            <th>Адрес доставки</th>
-                            <th>Всего заказов</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>Ресторан "Rixos Shymkent"</td>
-                            <td>Ресторан</td>
-                            <td>+7 777 111 22 33</td>
-                            <td>г. Шымкент, пр. Тауке Хана 17</td>
-                            <td>24 заказа</td>
-                        </tr>
-                        <tr>
-                            <td>Кафе "Жулдыз"</td>
-                            <td>Кафе</td>
-                            <td>+7 701 555 44 33</td>
-                            <td>г. Шымкент, ул. Байтурсынова 12</td>
-                            <td>8 заказов</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+P.fin = ()=>{
+  const rows=S.fin.map(f=>`<tr><td><b>${f.n}</b><div class="m">партия от ${f.d}</div></td>
+    <td class="num"><b>${F(f.q)}</b> ${f.u}</td>
+    <td class="num">${f.res?F(f.res):'—'}</td>
+    <td class="num"><b style="color:var(--gr)">${F(f.q-f.res)}</b></td>
+    <td>${f.srok}</td>
+    <td class="num"><button class="btn sm gh" onclick="toast('Списание с остатка — форма')">Списать</button></td></tr>`).join('');
+  return `
+  ${kpi([
+    {l:'Головы очищенные',v:'340 шт',s:'из них резерв 120',i:'fin',c:'g'},
+    {l:'Ножки очищенные',v:'1 203 шт',s:'из них резерв 420',i:'fin',c:'g'},
+    {l:'Комплекты «Бас-жілік»',v:'60 компл',s:'1 голова + 4 ножки',i:'box',c:'v'},
+    {l:'Стоимость остатка',v:T(1946000),s:'по цене продажи',i:'money'}
+  ])}
+  <div class="filters">
+    <input class="inp" placeholder="Поиск по номенклатуре" style="flex:1 1 240px">
+    <select class="inp"><option>Все виды</option><option>Головы</option><option>Ножки</option><option>Комплекты</option></select>
+    <button class="btn gh hide-m">${ic('dl')}Выгрузить</button>
+  </div>
+  <div class="card"><div class="hd"><h3>Склад очищенной продукции</h3></div>
+    <div class="bd tight">${tbl(['Номенклатура','+Остаток','+Резерв','+Свободно','Годен','+'],rows)}</div></div>
+  <div class="card"><div class="hd"><h3>Движение за сегодня</h3></div><div class="bd tight list">
+    <div class="it"><div class="ic">${ic('check')}</div><div class="tx"><b>Приход из цеха · СМ-0317</b><span>194 головы · 688 ножек</span></div><div class="rt"><span class="bdg g">+882</span></div></div>
+    <div class="it"><div class="ic">${ic('sales')}</div><div class="tx"><b>Отгрузка по заказу З-2213</b><span>Ресторан «Шымкент»</span></div><div class="rt"><span class="bdg r">−125</span></div></div>
+    <div class="it"><div class="ic">${ic('sales')}</div><div class="tx"><b>Отгрузка по заказу З-2210</b><span>ИП Сапарбаев, самовывоз</span></div><div class="rt"><span class="bdg r">−260</span></div></div>
+  </div></div>`;
+};
 
-            <!-- LOGISTICS -->
-            <div id="logistics" class="section">
-                <h3>Управление Доставкой и Самовывозом</h3>
-                <br>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Заказ</th>
-                            <th>Адрес / Способ</th>
-                            <th>Водитель / Курьер</th>
-                            <th>Статус отгрузки</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>#ORD-501</td>
-                            <td>Доставка: пр. Тауке Хана 17</td>
-                            <td>Курьер Нурлан (Газель 013AC)</td>
-                            <td><span class="badge badge-proc">В пути</span></td>
-                        </tr>
-                        <tr>
-                            <td>#ORD-502</td>
-                            <td>Самовывоз со склада</td>
-                            <td>Представитель клиента</td>
-                            <td><span class="badge badge-raw">Ожидает клиента</span></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+P.sales = ()=>{
+  const rows=S.ord.map(o=>`<tr><td><b>${o.id}</b><div class="m">${o.date}</div></td>
+    <td>${o.cli}</td><td>${o.it}</td><td class="num">${T(o.sum)}</td>
+    <td>${badge(o.pay)}</td><td>${badge(o.type)}</td><td>${badge(o.st)}</td>
+    <td class="num"><button class="btn sm gh" onclick="toast('Карточка заказа ${o.id}')">Открыть</button></td></tr>`).join('');
+  return `
+  ${kpi([
+    {l:'Заказов сегодня',v:'3',s:'на сумму '+T(564200),i:'sales'},
+    {l:'Выручка, август',v:T(7420000),s:'+18 % к июлю',d:'up',i:'money',c:'g'},
+    {l:'Средний чек',v:T(178800),s:'42 заказа',i:'rep',c:'v'},
+    {l:'Не оплачено',v:T(499600),s:'2 заказа в долг',i:'exp',c:'r'}
+  ])}
+  <div class="filters">
+    <button class="btn" onclick="ordModal()">${ic('plus')}Новый заказ</button>
+    <input class="inp" placeholder="Поиск по клиенту или номеру" style="flex:1 1 220px">
+    <select class="inp"><option>Все статусы</option><option>Новый</option><option>Собирается</option><option>В пути</option><option>Выполнен</option></select>
+    <select class="inp"><option>Доставка и самовывоз</option><option>Только доставка</option><option>Только самовывоз</option></select>
+  </div>
+  <div class="card"><div class="hd"><h3>Заказы</h3><div class="spacer"></div><span class="mini">${S.ord.length} записей</span></div>
+    <div class="bd tight">${tbl(['Заказ','Клиент','Состав','+Сумма','Оплата','Тип','Статус','+'],rows)}</div></div>`;
+};
 
-            <!-- REPORTS -->
-            <div id="reports" class="section">
-                <h3>Отчеты и Сводка</h3>
-                <br>
-                <div class="grid-4">
-                    <div class="card">
-                        <div class="card-title">Выход чистого веса</div>
-                        <div class="card-value">82%</div>
-                        <div class="card-sub">18% отход (шерсть/грязь)</div>
-                    </div>
-                    <div class="card">
-                        <div class="card-title">Себестоимость очистки</div>
-                        <div class="card-value">250 ₸ / шт</div>
-                        <div class="card-sub">Вода, свет, амортизация</div>
-                    </div>
-                </div>
-            </div>
+P.cli = ()=>{
+  const rows=S.cli.map(c=>`<tr><td><b>${c.n}</b><div class="m">${c.adr}</div></td>
+    <td>${badge(c.t)}</td><td>${c.ph}</td><td class="num">${c.o}</td>
+    <td class="num">${T(c.turn)}</td>
+    <td class="num">${c.debt?`<b style="color:var(--rd)">${T(c.debt)}</b>`:'<span class="bdg g">нет</span>'}</td>
+    <td class="num"><button class="btn sm gh" onclick="toast('Карточка клиента: ${c.n}')">Открыть</button></td></tr>`).join('');
+  return `
+  ${kpi([
+    {l:'Всего клиентов',v:'27',s:'активных за месяц 19',i:'cli'},
+    {l:'Кафе и рестораны',v:'18',s:'основной канал',i:'cli',c:'v'},
+    {l:'Оборот, август',v:T(7420000),s:'топ-5 дают 71 %',i:'money',c:'g'},
+    {l:'Общий долг',v:T(499600),s:'3 клиента',i:'exp',c:'r'}
+  ])}
+  <div class="filters">
+    <button class="btn" onclick="cliModal()">${ic('plus')}Новый клиент</button>
+    <input class="inp" placeholder="Поиск по названию или телефону" style="flex:1 1 220px">
+    <select class="inp"><option>Все типы</option><option>Кафе</option><option>Ресторан</option><option>Той-хана</option><option>Опт</option></select>
+  </div>
+  <div class="card"><div class="hd"><h3>База клиентов</h3></div>
+    <div class="bd tight">${tbl(['Клиент','Тип','Телефон','+Заказов','+Оборот','+Долг','+'],rows)}</div></div>`;
+};
 
-        </div>
-    </main>
+P.del = ()=>{
+  const rows=S.del.map(d=>`<tr><td><b>${d.id}</b><div class="m">заказ ${d.ord}</div></td>
+    <td>${d.cli}<div class="m">${d.adr}</div></td><td>${d.cour}</td><td>${d.time}</td>
+    <td class="num">${T(d.sum)}</td><td>${badge(d.pay.split(' · ')[0])}</td><td>${badge(d.st)}</td></tr>`).join('');
+  return `
+  ${kpi([
+    {l:'Доставок сегодня',v:'3',s:'1 в пути, 2 ожидают',i:'del'},
+    {l:'Самовывоз сегодня',v:'2',s:'1 отгружен',i:'box',c:'v'},
+    {l:'Сумма к сбору',v:T(406000),s:'наличными при доставке',i:'money',c:'o'},
+    {l:'Курьеров на смене',v:'2',s:'Бақыт, Нұрлан',i:'usr',c:'g'}
+  ])}
+  <div class="filters">
+    <button class="btn" onclick="toast('Форма назначения доставки')">${ic('plus')}Назначить доставку</button>
+    <select class="inp"><option>Все курьеры</option><option>Бақыт Сейітов</option><option>Нұрлан Оспан</option></select>
+    <select class="inp"><option>Сегодня</option><option>Завтра</option><option>Неделя</option></select>
+  </div>
+  <div class="card"><div class="hd"><h3>Доставки и самовывоз</h3></div>
+    <div class="bd tight">${tbl(['Доставка','Клиент / адрес','Курьер','Время','+Сумма','Оплата','Статус'],rows)}</div></div>`;
+};
 
-    <script>
-        function switchTab(tabId) {
-            // Hide all sections
-            document.querySelectorAll('.section').forEach(el => el.classList.remove('active'));
-            // Remove active class from menu
-            document.querySelectorAll('.menu-item').forEach(el => el.classList.remove('active'));
-            
-            // Show target section
-            document.getElementById(tabId).classList.add('active');
-            
-            // Highlight active menu item
-            event.currentTarget.classList.add('active');
+P.exp = ()=>{
+  const rows=S.exp.map(e=>`<tr><td>${e.date}</td><td>${badge(e.cat)}</td>
+    <td class="num"><b>${T(e.sum)}</b></td><td>${e.note}</td>
+    <td>${e.rc?`<span class="bdg g">${ic('check')}чек</span>`:'<span class="bdg n">без чека</span>'}</td>
+    <td>${e.u}</td></tr>`).join('');
+  return `
+  ${kpi([
+    {l:'Расходы, август',v:T(2186400),s:'42 записи',i:'exp',c:'o'},
+    {l:'Коммуналка',v:T(524300),s:'газ, вода, свет',i:'fire',c:'r'},
+    {l:'Зарплата и аренда',v:T(1210000),s:'55 % расходов',i:'usr',c:'v'},
+    {l:'Без чека',v:T(438700),s:'8 записей на проверку',i:'rep'}
+  ])}
+  <div class="filters">
+    <button class="btn" onclick="expModal()">${ic('plus')}Добавить расход</button>
+    <select class="inp"><option>Все категории</option><option>Газ</option><option>Вода</option><option>Электроэнергия</option><option>ГСМ</option><option>Аренда</option><option>Зарплата</option><option>Хозрасходы</option></select>
+    <select class="inp"><option>Август 2026</option><option>Июль 2026</option></select>
+    <button class="btn gh hide-m">${ic('dl')}Выгрузить</button>
+  </div>
+  <div class="card"><div class="hd"><h3>Текущие расходы и коммуналка</h3></div>
+    <div class="bd tight" id="expTbl">${tbl(['Дата','Категория','+Сумма','Примечание','Чек','Внёс'],rows)}</div></div>`;
+};
 
-            // Update title
-            document.getElementById('page-title').innerText = event.currentTarget.innerText;
-        }
-    </script>
+P.rep = ()=>`
+  ${kpi([
+    {l:'Выход продукции',v:'96,4 %',s:'норма 94 %',d:'up',i:'rep',c:'g'},
+    {l:'Себестоимость головы',v:T(1980),s:'сырьё + переработка',i:'money'},
+    {l:'Маржа на голове',v:T(1020),s:'34 % от цены',i:'exp',c:'v'},
+    {l:'Прибыль, август',v:T(2915600),s:'выручка − расходы',d:'up',i:'money',c:'g'}
+  ])}
+  <div class="row">
+    <div class="col"><div class="card"><div class="hd"><h3>Отчёт «Сырьё → готовая продукция»</h3></div><div class="bd tight">
+      ${tbl(['Неделя','+Принято','+Сдано','+Брак','Выход'],[
+        ['01–07.08',1240,1198,42,'96,6 %'],['08–14.08',1385,1329,56,'95,9 %'],
+        ['15–21.08',1420,1372,48,'96,6 %'],['22–27.08',1596,1541,55,'96,6 %']
+      ].map(r=>`<tr><td>${r[0]}</td><td class="num">${F(r[1])}</td><td class="num">${F(r[2])}</td><td class="num">${r[3]}</td><td><b>${r[4]}</b></td></tr>`).join(''))}
+    </div></div></div>
+    <div class="col"><div class="card"><div class="hd"><h3>Структура расходов, август</h3></div><div class="bd">
+      ${[['Зарплата',960000,44,'var(--vi)'],['Аренда',250000,11,'var(--acc)'],['Газ',268000,12,'var(--rd)'],
+         ['Электроэнергия',148300,7,'var(--or)'],['Вода',108000,5,'var(--acc)'],['ГСМ',196000,9,'var(--gr)'],['Прочее',256100,12,'var(--mut)']]
+        .map(r=>`<div style="margin-bottom:11px"><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px"><span>${r[0]}</span><b>${T(r[1])} · ${r[2]}%</b></div>
+        <div class="prog"><i style="width:${r[2]*2}%;background:${r[3]}"></i></div></div>`).join('')}
+    </div></div></div>
+  </div>
+  <div class="card"><div class="hd"><h3>Топ клиентов, август</h3><div class="spacer"></div><button class="btn gh sm hide-m">${ic('dl')}В Excel</button></div><div class="bd tight">
+    ${tbl(['Клиент','+Заказов','+Оборот','+Доля','+Долг'],S.cli.sort((a,b)=>b.turn-a.turn).map(c=>
+      `<tr><td>${c.n}</td><td class="num">${c.o}</td><td class="num">${T(c.turn)}</td><td class="num">${Math.round(c.turn/19670000*100)} %</td><td class="num">${c.debt?T(c.debt):'—'}</td></tr>`).join(''))}
+  </div></div>`;
+
+P.usr = ()=>`
+  <div class="filters"><button class="btn" onclick="toast('Форма нового сотрудника')">${ic('plus')}Добавить сотрудника</button>
+  <select class="inp"><option>Все роли</option><option>Руководство</option><option>Начальник смены</option><option>Доставщик</option><option>Оператор цеха</option></select></div>
+  <div class="card"><div class="hd"><h3>Сотрудники и доступы</h3></div><div class="bd tight">
+    ${tbl(['Сотрудник','Роль','Телефон','Статус','+'],S.usr.map(u=>`<tr><td><b>${u.n}</b></td><td><span class="bdg ${u.r==='Руководство'?'v':u.r==='Начальник смены'?'b':u.r==='Доставщик'?'o':'n'}">${u.r}</span></td>
+      <td>${u.ph}</td><td>${badge(u.st)}</td><td class="num"><button class="btn sm gh" onclick="toast('Права доступа: ${u.n}')">Права</button></td></tr>`).join(''))}
+  </div></div>
+  <div class="card"><div class="hd"><h3>Что видит каждая роль</h3></div><div class="bd tight">
+    ${tbl(['Роль','Доступ'],[
+      ['Руководство','Все разделы, финансы, отчёты, права доступа'],
+      ['Начальник смены','Смена, сырьё, производство, склад ГП, расходы цеха'],
+      ['Доставщик','Свои доставки, маршрут, приём оплаты, контакты клиентов']
+    ].map(r=>`<tr><td><b>${r[0]}</b></td><td>${r[1]}</td></tr>`).join(''))}
+  </div></div>`;
+
+P.set = ()=>`
+  <div class="row">
+    <div class="col"><div class="card"><div class="hd"><h3>Номенклатура и цены</h3></div><div class="bd tight">
+      ${tbl(['Позиция','+Закуп','+Продажа','+Маржа'],[
+        ['Голова баранья',1500,3000,1500],['Ножка баранья',350,700,350],['Комплект «Бас-жілік»',2900,7800,4900]
+      ].map(r=>`<tr><td>${r[0]}</td><td class="num">${T(r[1])}</td><td class="num">${T(r[2])}</td><td class="num" style="color:var(--gr)">${T(r[3])}</td></tr>`).join(''))}
+    </div></div>
+    <div class="card"><div class="hd"><h3>Нормы производства</h3></div><div class="bd">
+      <div class="f2"><div class="field"><label>Норма выхода голов, %</label><input class="inp" value="95"></div>
+      <div class="field"><label>Норма выхода ножек, %</label><input class="inp" value="97"></div></div>
+      <div class="f2"><div class="field"><label>Допустимый брак, %</label><input class="inp" value="2"></div>
+      <div class="field"><label>Срок годности ГП, дней</label><input class="inp" value="3"></div></div>
+      <button class="btn" onclick="toast('Нормы сохранены')">Сохранить</button>
+    </div></div></div>
+    <div class="col">
+      <div class="card"><div class="hd"><h3>Категории расходов</h3></div><div class="bd">
+        <div style="display:flex;gap:7px;flex-wrap:wrap">${['Газ','Вода','Электроэнергия','Аренда','Зарплата','ГСМ','Хозрасходы','Ремонт','Налоги'].map(c=>`<span class="bdg b">${c}</span>`).join('')}</div>
+        <div style="margin-top:12px;display:flex;gap:8px"><input class="inp" placeholder="Новая категория" style="flex:1"><button class="btn" onclick="toast('Категория добавлена')">Добавить</button></div>
+      </div></div>
+      <div class="card"><div class="hd"><h3>Компания</h3></div><div class="bd">
+        <div class="field"><label>Название</label><input class="inp" value="ТОО «BasZhilik»"></div>
+        <div class="field"><label>Адрес цеха</label><input class="inp" value="Шымкент, промзона Тассай, уч. 14"></div>
+        <div class="f2"><div class="field"><label>БИН</label><input class="inp" value="230840012345"></div>
+        <div class="field"><label>Телефон</label><input class="inp" value="+7 725 200 44 66"></div></div>
+        <button class="btn" onclick="toast('Данные компании сохранены')">Сохранить</button>
+      </div></div>
+    </div>
+  </div>`;
+
+/* --- страницы начальника смены --- */
+P.shift = ()=>`
+  ${kpi([
+    {l:'Смена',v:'СМ-0318',s:'дневная, с 08:00',i:'shift'},
+    {l:'Задание на смену',v:'120 гол / 400 нож',s:'партия ПР-1047',i:'raw',c:'o'},
+    {l:'Сдано на склад',v:'78 гол / 265 нож',s:'65 % задания',i:'check',c:'g'},
+    {l:'Брак',v:'3 шт',s:'норма до 2 %',i:'exp',c:'r'}
+  ])}
+  <div class="filters">
+    <button class="btn" onclick="prodModal()">${ic('plus')}Взять партию в работу</button>
+    <button class="btn gr" onclick="toast('Сдано на склад готовой продукции')">${ic('check')}Сдать на склад ГП</button>
+    <button class="btn gh" onclick="expModal()">${ic('exp')}Расход по цеху</button>
+  </div>
+  <div class="row">
+    <div class="col" style="flex:2 1 460px">
+      <div class="card"><div class="hd"><h3>Этапы по текущей смене</h3></div><div class="bd"><div class="pipe">
+        ${Object.entries(S.pipe).slice(0,4).map(([k,v])=>`<div class="st"><h4>${k}<span>${v.length}</span></h4>
+        ${v.map(c=>`<div class="cd ${c.c}"><b>${c.t}</b><div class="m">${c.m}</div></div>`).join('')||'<div style="font-size:12px;color:var(--mut2);padding:6px 2px">пусто</div>'}</div>`).join('')}
+      </div></div></div>
+      <div class="card"><div class="hd"><h3>Бригада на смене</h3></div><div class="bd tight list">
+        ${[['Гүлнар Ахметова','Опалка','08:00–20:00'],['Мұрат Сейтқали','Очистка','08:00–20:00'],['Айгүл Досым','Промывка','08:00–20:00'],['Данияр Ержан','Контроль и упаковка','10:00–20:00']]
+          .map(w=>`<div class="it"><div class="ic">${ic('usr')}</div><div class="tx"><b>${w[0]}</b><span>${w[1]}</span></div><div class="rt"><span class="bdg g">${w[2]}</span></div></div>`).join('')}
+      </div></div>
+    </div>
+    <div class="col">
+      <div class="card"><div class="hd"><h3>Выполнение задания</h3></div><div class="bd">
+        <div style="display:flex;justify-content:space-between;margin:0 0 4px;font-size:13px"><span>Головы</span><b>78 / 120</b></div><div class="prog"><i style="width:65%"></i></div>
+        <div style="display:flex;justify-content:space-between;margin:14px 0 4px;font-size:13px"><span>Ножки</span><b>265 / 400</b></div><div class="prog"><i style="width:66%"></i></div>
+        <div style="display:flex;justify-content:space-between;margin:14px 0 4px;font-size:13px"><span>Промыто</span><b>343 шт</b></div><div class="prog"><i class="g" style="width:78%"></i></div>
+      </div></div>
+      <div class="card"><div class="hd"><h3>Сырьё в цехе</h3></div><div class="bd tight list">
+        <div class="it"><div class="ic">${ic('raw')}</div><div class="tx"><b>ПР-1047</b><span>ИП Абдуллаев</span></div><div class="rt"><b>35 гол / 120 нож</b></div></div>
+        <div class="it"><div class="ic">${ic('raw')}</div><div class="tx"><b>ПР-1048 (на складе)</b><span>Убойный цех «Береке»</span></div><div class="rt"><b>180 гол / 640 нож</b></div></div>
+      </div></div>
+    </div>
+  </div>`;
+
+/* --- страницы доставщика --- */
+P.mydel = ()=>{
+  const mine=S.del.filter(d=>d.cour==='Бақыт Сейітов');
+  const cards=mine.map(d=>`<div class="dcard">
+    <div class="t"><b>${d.cli}</b><div class="spacer"></div>${badge(d.st)}</div>
+    <div class="adr">${ic('route')}<span>${d.adr}</span></div>
+    <div class="ln"><span>Заказ</span><b>${d.ord}</b></div>
+    <div class="ln"><span>Состав</span><b>${(S.ord.find(o=>o.id===d.ord)||{}).it||'—'}</b></div>
+    <div class="ln"><span>Ко времени</span><b>${d.time}</b></div>
+    <div class="ln"><span>Оплата</span><b style="color:${/Долг/.test(d.pay)?'var(--rd)':'var(--gr)'}">${T(d.sum)} · ${d.pay}</b></div>
+    <div class="acts">
+      <a class="btn gh" href="tel:+77012345678">${ic('cli')}Позвонить</a>
+      ${d.st==='Доставлен'?`<button class="btn gh" disabled>${ic('check')}Доставлено</button>`:`<button class="btn gr" onclick="toast('Доставка ${d.id}: отмечена как доставленная')">${ic('check')}Доставил</button>`}
+    </div></div>`).join('');
+  return `
+  ${kpi([
+    {l:'Доставок сегодня',v:String(mine.length),s:'1 выполнена',i:'del'},
+    {l:'К сбору наличными',v:T(232000),s:'1 клиент в долг',i:'money',c:'o'},
+    {l:'Сдано в кассу',v:T(168000),s:'сегодня в 12:10',i:'check',c:'g'},
+    {l:'Пробег',v:'46 км',s:'ГСМ 32 000 ₸',i:'route',c:'v'}
+  ])}
+  <div class="filters"><select class="inp" style="flex:1 1 180px"><option>Сегодня, 27.08</option><option>Завтра, 28.08</option></select>
+  <button class="btn gh" onclick="toast('Отчёт по кассе отправлен руководству')">${ic('money')}Сдать кассу</button></div>
+  <div class="card"><div class="hd"><h3>Мои доставки</h3><div class="spacer"></div><span class="mini">${mine.length} адреса</span></div><div class="bd">${cards}</div></div>`;
+};
+
+P.route = ()=>`
+  <div class="card"><div class="hd"><h3>Маршрут на сегодня</h3><div class="spacer"></div><span class="mini">3 точки · 46 км</span></div>
+  <div class="bd">
+    <div style="background:linear-gradient(135deg,#dfe9f0,#eef3f7);border:1px solid var(--line);border-radius:6px;height:190px;display:flex;align-items:center;justify-content:center;color:var(--mut);flex-direction:column;gap:8px">
+      ${ic('route')}<span style="font-size:13px">Карта маршрута (2ГИС / Яндекс)</span></div>
+  </div>
+  <div class="bd tight list">
+    ${[['1','11:20','Кафе «Достык», Сайрам, ул. Абая 5','Доставлен','g'],
+       ['2','14:30','Ресторан «Шымкент», пр. Тауке хана 12','В пути','b'],
+       ['3','16:00','Кафе «Мерей», ул. Байтурсынова 41','Ожидает','o']]
+      .map(r=>`<div class="it"><div class="ic">${r[0]}</div><div class="tx"><b>${r[2]}</b><span>ко времени ${r[1]}</span></div><div class="rt"><span class="bdg ${r[4]}">${r[3]}</span></div></div>`).join('')}
+  </div></div>
+  <div class="card"><div class="hd"><h3>Приём оплаты в точке</h3></div><div class="bd">
+    <div class="field"><label>Заказ</label><select class="inp"><option>З-2214 · Кафе «Мерей» · 232 000 ₸</option><option>З-2209 · Кафе «Достык» · 174 000 ₸</option></select></div>
+    <div class="f2"><div class="field"><label>Принято, ₸</label><input class="inp" placeholder="232000"></div>
+    <div class="field"><label>Форма оплаты</label><select class="inp"><option>Наличные</option><option>Kaspi перевод</option><option>Оплата на счёт</option></select></div></div>
+    <div class="field"><label>Примечание</label><input class="inp" placeholder="например: остаток 30 000 ₸ обещали в пятницу"></div>
+    <button class="btn gr" onclick="toast('Оплата принята и передана в кассу')">${ic('check')}Принять оплату</button>
+  </div></div>`;
+
+P.myfin = ()=>`
+  ${kpi([
+    {l:'Сдано за август',v:T(3840000),s:'32 доставки',i:'money',c:'g'},
+    {l:'На руках сейчас',v:T(0),s:'касса сдана',i:'exp'},
+    {l:'ГСМ за август',v:T(196000),s:'по чекам',i:'del',c:'o'}
+  ])}
+  <div class="filters"><button class="btn" onclick="expModal()">${ic('plus')}Расход (ГСМ, мойка)</button></div>
+  <div class="card"><div class="hd"><h3>Моя касса и расходы</h3></div><div class="bd tight">
+    ${tbl(['Дата','Операция','+Сумма','Примечание'],[
+      ['27.08','Принято от клиента',168000,'Кафе «Достык», наличные'],
+      ['27.08','Сдано в кассу',-168000,'Принял: Рустем Қалиев'],
+      ['26.08','Расход ГСМ',-32000,'АЗС Sinooil, чек прикреплён'],
+      ['26.08','Принято от клиента',320000,'ИП Сапарбаев, Kaspi']
+    ].map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td class="num"><b style="color:${r[2]<0?'var(--rd)':'var(--gr)'}">${T(r[2])}</b></td><td>${r[3]}</td></tr>`).join(''))}
+  </div></div>`;
+
+/* ==================== НАВИГАЦИЯ ==================== */
+const NAV = {
+  boss:{name:'Рустем Қалиев',pos:'Руководство',ini:'РҚ',
+    items:[
+      {k:'dash',t:'Дашборд',i:'home',g:'Обзор'},
+      {k:'raw',t:'Склад сырья',i:'raw',g:'Производство',c:'2'},
+      {k:'prod',t:'Очистка и промывка',i:'prod'},
+      {k:'fin',t:'Склад готовой',i:'fin'},
+      {k:'sales',t:'Заказы',i:'sales',g:'Продажи',c:'3'},
+      {k:'cli',t:'Клиенты',i:'cli'},
+      {k:'del',t:'Доставка',i:'del',c:'2'},
+      {k:'exp',t:'Расходы',i:'exp',g:'Финансы и учёт'},
+      {k:'rep',t:'Отчёты',i:'rep'},
+      {k:'usr',t:'Сотрудники',i:'usr',g:'Администрирование'},
+      {k:'set',t:'Настройки',i:'set'}
+    ],
+    bottom:['dash','raw','prod','sales']},
+  master:{name:'Ерлан Жақсылық',pos:'Начальник смены',ini:'ЕЖ',
+    items:[
+      {k:'shift',t:'Моя смена',i:'shift',g:'Смена'},
+      {k:'raw',t:'Склад сырья',i:'raw',c:'2'},
+      {k:'prod',t:'Очистка и промывка',i:'prod'},
+      {k:'fin',t:'Склад готовой',i:'fin'},
+      {k:'exp',t:'Расходы по цеху',i:'exp',g:'Учёт'},
+      {k:'usr',t:'Бригада',i:'usr'}
+    ],
+    bottom:['shift','raw','prod','fin']},
+  courier:{name:'Бақыт Сейітов',pos:'Доставщик',ini:'БС',
+    items:[
+      {k:'mydel',t:'Мои доставки',i:'del',g:'Работа',c:'2'},
+      {k:'route',t:'Маршрут и оплата',i:'route'},
+      {k:'cli',t:'Клиенты',i:'cli'},
+      {k:'myfin',t:'Моя касса',i:'money',g:'Финансы'}
+    ],
+    bottom:['mydel','route','cli','myfin']}
+};
+const TITLES = {dash:'Дашборд',raw:'Склад неочищенного сырья',prod:'Очистка от шерсти и промывка',fin:'Склад очищенной продукции',
+  sales:'Заказы и продажи',cli:'Клиенты',del:'Доставка и самовывоз',exp:'Расходы и коммуналка',rep:'Отчёты',usr:'Сотрудники и доступы',
+  set:'Настройки',shift:'Моя смена',mydel:'Мои доставки',route:'Маршрут и приём оплаты',myfin:'Моя касса'};
+const SUBS = {dash:'Сегодня, 27 августа 2026',raw:'Приходы, остатки, передача в цех',prod:'Смены, этапы, выход продукции',
+  fin:'Остатки, резервы, движение',sales:'Доставка и самовывоз',cli:'Кафе, рестораны, опт',del:'Курьеры и статусы',
+  exp:'С примечаниями и чеками',rep:'Выход, себестоимость, прибыль',usr:'Роли и права',set:'Номенклатура, нормы, компания',
+  shift:'СМ-0318 · дневная · 08:00–20:00',mydel:'Сегодня, 27 августа',route:'3 точки · 46 км',myfin:'Август 2026'};
+
+let role='boss', page='dash';
+
+function render(){
+  const r=NAV[role];
+  document.getElementById('sbnav').innerHTML = r.items.map(it=>
+    (it.g?`<div class="grp">${it.g}</div>`:'')+
+    `<a class="item ${page===it.k?'act':''}" onclick="go('${it.k}')">${ic(it.i)}<span>${it.t}</span>${it.c?`<span class="cnt">${it.c}</span>`:''}</a>`).join('');
+  document.getElementById('sbwho').innerHTML=`<b>${r.name}</b>${r.pos}`;
+  document.getElementById('ava').textContent=r.ini;
+  document.getElementById('pgTitle').textContent=TITLES[page]||'';
+  document.getElementById('pgSub').textContent=SUBS[page]||'';
+  document.getElementById('content').innerHTML=(P[page]||(()=>'<div class="card"><div class="empty"><b>Раздел в разработке</b>Выберите другой пункт меню</div></div>'))();
+  const bn=r.bottom.map(k=>{const it=r.items.find(x=>x.k===k);
+    return `<a class="${page===k?'act':''}" onclick="go('${k}')">${ic(it.i)}<span>${it.t.split(' ')[0]}</span>${it.c?`<span class="cnt">${it.c}</span>`:''}</a>`}).join('');
+  document.getElementById('bnav').innerHTML=bn+`<a onclick="openSheet()" class="${r.bottom.includes(page)?'':'act'}">${ic('more')}<span>Ещё</span></a>`;
+  document.getElementById('sheetItems').innerHTML=r.items.map(it=>
+    `<a onclick="go('${it.k}');closeSheet()"><span class="ic">${ic(it.i)}</span>${it.t}${it.c?`<span class="cnt">${it.c}</span>`:''}</a>`).join('');
+  window.scrollTo(0,0);
+}
+function go(k){page=k;render()}
+function setRole(v){role=v;page=NAV[v].items[0].k;render();toast('Вход как: '+NAV[v].pos)}
+function openSheet(){document.getElementById('sheet').classList.add('on');document.getElementById('sheetOv').classList.add('on')}
+function closeSheet(){document.getElementById('sheet').classList.remove('on');document.getElementById('sheetOv').classList.remove('on')}
+
+/* ==================== МОДАЛКИ ==================== */
+let saveFn=null;
+function modal(title,body,fn,btn='Сохранить'){
+  document.getElementById('mTitle').textContent=title;
+  document.getElementById('mBody').innerHTML=body;
+  document.getElementById('mSave').innerHTML=btn;
+  saveFn=fn;document.getElementById('modalOv').classList.add('on');
+}
+function closeModal(){document.getElementById('modalOv').classList.remove('on')}
+function saveModal(){if(saveFn)saveFn();closeModal()}
+function toast(t){const el=document.getElementById('toast');el.textContent=t;el.classList.add('on');clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('on'),2600)}
+
+function rawModal(){
+  modal('Приход неочищенного сырья',`
+    <div class="f2"><div class="field"><label>Дата</label><input class="inp" type="date" value="2026-08-27"></div>
+    <div class="field"><label>Номер партии</label><input class="inp" value="ПР-1049"></div></div>
+    <div class="field"><label>Поставщик</label><select class="inp"><option>Убойный цех «Береке»</option><option>ИП Абдуллаев (Сайрам)</option><option>КХ «Достык» (Толеби)</option><option>Рынок Аль-Фараби</option></select></div>
+    <div class="f2"><div class="field"><label>Головы, шт</label><input class="inp" id="rH" placeholder="150"></div>
+    <div class="field"><label>Ножки, шт</label><input class="inp" id="rL" placeholder="600"></div></div>
+    <div class="f2"><div class="field"><label>Цена за голову, ₸</label><input class="inp" value="1500"></div>
+    <div class="field"><label>Цена за ножку, ₸</label><input class="inp" value="350"></div></div>
+    <div class="field"><label>Примечание</label><textarea class="inp" rows="2" placeholder="машина, вес, качество сырья"></textarea></div>
+    <div class="drop" onclick="toast('Выбор файла: накладная / фото')">${ic('dl')} Загрузить накладную или фото</div>`,
+    ()=>{const h=+(document.getElementById('rH').value||150), l=+(document.getElementById('rL').value||600);
+      S.raw.unshift({id:'ПР-'+(1049+S.raw.length-5),date:'27.08.2026',sup:'Убойный цех «Береке»',h,l,price:h*1500+l*350,left:{h,l},st:'Принято'});
+      render();toast('Приход сохранён: '+h+' голов, '+l+' ножек')});
+}
+function prodModal(){
+  modal('Партия в работу',`
+    <div class="field"><label>Партия сырья</label><select class="inp"><option>ПР-1048 · 180 голов / 640 ножек</option><option>ПР-1047 · 35 голов / 120 ножек</option></select></div>
+    <div class="f2"><div class="field"><label>Головы в работу, шт</label><input class="inp" placeholder="120"></div>
+    <div class="field"><label>Ножки в работу, шт</label><input class="inp" placeholder="400"></div></div>
+    <div class="f2"><div class="field"><label>Смена</label><select class="inp"><option>Дневная</option><option>Ночная</option></select></div>
+    <div class="field"><label>Начальник смены</label><select class="inp"><option>Ерлан Жақсылық</option><option>Асхат Нұрлан</option></select></div></div>
+    <div class="field"><label>Этап</label><select class="inp"><option>Опалка / очистка</option><option>Промывка</option><option>Контроль качества</option></select></div>
+    <div class="field"><label>Примечание</label><textarea class="inp" rows="2" placeholder="номер печи, состав бригады"></textarea></div>`,
+    ()=>toast('Партия принята в работу'),'Взять в работу');
+}
+function ordModal(){
+  modal('Новый заказ',`
+    <div class="field"><label>Клиент</label><select class="inp"><option>Кафе «Мерей»</option><option>Ресторан «Шымкент»</option><option>Той-хана «Алтын Той»</option><option>Кафе «Достык»</option><option>ИП Сапарбаев (рынок)</option></select></div>
+    <div class="f2"><div class="field"><label>Головы очищенные, шт</label><input class="inp" placeholder="40"></div>
+    <div class="field"><label>Ножки очищенные, шт</label><input class="inp" placeholder="160"></div></div>
+    <div class="f2"><div class="field"><label>Способ получения</label><select class="inp"><option>Доставка</option><option>Самовывоз</option></select></div>
+    <div class="field"><label>Дата отгрузки</label><input class="inp" type="date" value="2026-08-28"></div></div>
+    <div class="f2"><div class="field"><label>Оплата</label><select class="inp"><option>Оплачен</option><option>Частично</option><option>Долг</option></select></div>
+    <div class="field"><label>Курьер</label><select class="inp"><option>Бақыт Сейітов</option><option>Нұрлан Оспан</option><option>—</option></select></div></div>
+    <div class="field"><label>Примечание</label><textarea class="inp" rows="2" placeholder="ко времени, адрес выгрузки"></textarea></div>`,
+    ()=>toast('Заказ создан, продукция зарезервирована'),'Создать заказ');
+}
+function cliModal(){
+  modal('Новый клиент',`
+    <div class="field"><label>Название</label><input class="inp" placeholder="Кафе «Береке»"></div>
+    <div class="f2"><div class="field"><label>Тип</label><select class="inp"><option>Кафе</option><option>Ресторан</option><option>Той-хана</option><option>Опт</option></select></div>
+    <div class="field"><label>Телефон</label><input class="inp" placeholder="+7 7__ ___ __ __"></div></div>
+    <div class="field"><label>Адрес доставки</label><input class="inp" placeholder="Шымкент, ул. ..."></div>
+    <div class="f2"><div class="field"><label>Условия оплаты</label><select class="inp"><option>По факту</option><option>Отсрочка 7 дней</option><option>Отсрочка 14 дней</option></select></div>
+    <div class="field"><label>Лимит долга, ₸</label><input class="inp" placeholder="300000"></div></div>`,
+    ()=>toast('Клиент добавлен в базу'),'Добавить');
+}
+function expModal(){
+  modal('Расход',`
+    <div class="f2"><div class="field"><label>Дата</label><input class="inp" type="date" value="2026-08-27"></div>
+    <div class="field"><label>Категория</label><select class="inp" id="eC"><option>Газ</option><option>Вода</option><option>Электроэнергия</option><option>ГСМ</option><option>Аренда</option><option>Зарплата</option><option>Хозрасходы</option><option>Ремонт</option></select></div></div>
+    <div class="field"><label>Сумма, ₸</label><input class="inp" id="eS" placeholder="86000"></div>
+    <div class="field"><label>Примечание</label><textarea class="inp" id="eN" rows="2" placeholder="показания счётчика, что покупали, у кого"></textarea></div>
+    <div class="drop" onclick="toast('Выбор файла: чек или фото квитанции')">${ic('dl')} Прикрепить чек (фото, PDF)</div>
+    <div style="font-size:12px;color:var(--mut);margin-top:8px">Расходы без чека попадают в отчёт «На проверку»</div>`,
+    ()=>{const c=document.getElementById('eC').value,s=+(document.getElementById('eS').value||0),n=document.getElementById('eN').value||'—';
+      S.exp.unshift({date:'27.08.2026',cat:c,sum:s,note:n,rc:1,u:NAV[role].name});
+      render();toast('Расход сохранён: '+c+' · '+T(s))});
+}
+document.getElementById('modalOv').addEventListener('click',e=>{if(e.target.id==='modalOv')closeModal()});
+render();
+</script>
 </body>
 </html>

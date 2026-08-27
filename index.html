@@ -241,7 +241,6 @@ select.inp{cursor:pointer}
 
 <div class="main">
   <header class="top">
-    <button class="icobtn only-m" onclick="openSheet()" aria-label="Меню"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
     <div class="tt">
       <h1 id="pgTitle">Дашборд</h1>
       <div class="sub" id="pgSub">Сегодня, 27 августа 2026</div>
@@ -265,7 +264,7 @@ select.inp{cursor:pointer}
 
 <div class="sheet" id="sheet">
   <div class="gr"></div>
-  <div class="st">Все разделы</div>
+  <div class="st" id="sheetTitle">Ещё разделы</div>
   <div id="sheetItems"></div>
 </div>
 <div class="ov" id="sheetOv" onclick="closeSheet()" style="z-index:65"></div>
@@ -907,7 +906,7 @@ const NAV = {
       {k:'finM',t:'Сдача на склад',i:'fin'},
       {k:'expM',t:'Расходы цеха',i:'exp',g:'Учёт'}
     ],
-    bottom:['shift','rawM','prodM','finM']},
+    bottom:['shift','rawM','prodM','finM','expM']},
   courier:{name:'Бақыт Сейітов',pos:'Доставщик',ini:'БС',
     items:[
       {k:'mydel',t:'Мои доставки',i:'del',g:'Работа',c:'2'},
@@ -940,11 +939,15 @@ function render(){
   document.getElementById('pgTitle').textContent=TITLES[page]||'';
   document.getElementById('pgSub').textContent=SUBS[page]||'';
   document.getElementById('content').innerHTML=(P[page]||(()=>'<div class="card"><div class="empty"><b>Раздел в разработке</b>Выберите другой пункт меню</div></div>'))();
+  const rest=r.items.filter(it=>!r.bottom.includes(it.k));
   const bn=r.bottom.map(k=>{const it=r.items.find(x=>x.k===k);
     return `<a class="${page===k?'act':''}" onclick="go('${k}')">${ic(it.i)}<span>${it.t.split(' ')[0]}</span>${it.c?`<span class="cnt">${it.c}</span>`:''}</a>`}).join('');
-  document.getElementById('bnav').innerHTML=bn+`<a onclick="openSheet()" class="${r.bottom.includes(page)?'':'act'}">${ic('more')}<span>Ещё</span></a>`;
-  document.getElementById('sheetItems').innerHTML=r.items.map(it=>
+  document.getElementById('bnav').innerHTML=bn+(rest.length?
+    `<a onclick="openSheet()" class="${r.bottom.includes(page)?'':'act'}">${ic('more')}<span>Ещё</span></a>`:'');
+  document.getElementById('sheetTitle').textContent=`Ещё разделы · ${rest.length}`;
+  document.getElementById('sheetItems').innerHTML=rest.map(it=>
     `<a onclick="go('${it.k}');closeSheet()"><span class="ic">${ic(it.i)}</span>${it.t}${it.c?`<span class="cnt">${it.c}</span>`:''}</a>`).join('');
+  if(!rest.length)closeSheet();
   window.scrollTo(0,0);
 }
 function go(k){page=k;render()}

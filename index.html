@@ -349,7 +349,7 @@ const S = {
     {date:'24.08.2026',cat:'Зарплата',sum:420000,note:'Аванс, 6 работников',rc:0,u:'Руководство'}
   ],
   usr:[
-    {n:'Рустем Қалиев',r:'Руководство',ph:'+7 701 000 11 22',st:'Активен'},
+    {n:'Нұрсұлтан Ермаханұлы',r:'Руководство',ph:'+7 701 000 11 22',st:'Активен'},
     {n:'Ерлан Жақсылық',r:'Начальник смены',ph:'+7 705 333 44 55',st:'Активен'},
     {n:'Асхат Нұрлан',r:'Начальник смены',ph:'+7 707 222 33 44',st:'Активен'},
     {n:'Бақыт Сейітов',r:'Доставщик',ph:'+7 747 111 22 33',st:'Активен'},
@@ -668,7 +668,7 @@ P.shift = ()=>`
   ])}
   <div class="filters">
     <button class="btn" onclick="prodModal()">${ic('plus')}Взять партию в работу</button>
-    <button class="btn gr" onclick="toast('Сдано на склад готовой продукции')">${ic('check')}Сдать на склад ГП</button>
+    <button class="btn gr" onclick="go('finM')">${ic('check')}Сдать на склад ГП</button>
     <button class="btn gh" onclick="expModal()">${ic('exp')}Расход по цеху</button>
   </div>
   <div class="row">
@@ -751,15 +751,104 @@ P.myfin = ()=>`
   <div class="card"><div class="hd"><h3>Моя касса и расходы</h3></div><div class="bd tight">
     ${tbl(['Дата','Операция','+Сумма','Примечание'],[
       ['27.08','Принято от клиента',168000,'Кафе «Достык», наличные'],
-      ['27.08','Сдано в кассу',-168000,'Принял: Рустем Қалиев'],
+      ['27.08','Сдано в кассу',-168000,'Принял: Нұрсұлтан Ермаханұлы'],
       ['26.08','Расход ГСМ',-32000,'АЗС Sinooil, чек прикреплён'],
       ['26.08','Принято от клиента',320000,'ИП Сапарбаев, Kaspi']
     ].map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td class="num"><b style="color:${r[2]<0?'var(--rd)':'var(--gr)'}">${T(r[2])}</b></td><td>${r[3]}</td></tr>`).join(''))}
   </div></div>`;
 
+/* --- урезанные страницы начальника смены (без денег, поставщиков и себестоимости) --- */
+P.rawM = ()=>{
+  const rows=S.raw.filter(r=>r.st!=='Списано').map(r=>`<tr>
+    <td><b>${r.id}</b><div class="m">поступила ${r.date}</div></td>
+    <td class="num">${F(r.left.h)}</td><td class="num">${F(r.left.l)}</td>
+    <td>${badge(r.st)}</td>
+    <td class="num"><button class="btn sm" onclick="prodModal()">В работу</button></td></tr>`).join('');
+  return `
+  ${kpi([
+    {l:'Головы к очистке',v:'215 шт',s:'2 партии на складе',i:'raw'},
+    {l:'Ножки к очистке',v:'760 шт',s:'2 партии на складе',i:'raw'},
+    {l:'Уже в цехе',v:'35 гол / 120 нож',s:'партия ПР-1047',i:'prod',c:'o'}
+  ])}
+  <div class="card"><div class="hd"><h3>Сырьё, доступное смене</h3><div class="spacer"></div><span class="mini">только остатки в штуках</span></div>
+    <div class="bd tight">${tbl(['Партия','+Головы','+Ножки','Статус','+'],rows)}</div></div>
+  <div class="card"><div class="bd" style="display:flex;gap:9px;flex-wrap:wrap">
+    <button class="btn" onclick="prodModal()">${ic('plus')}Взять партию в работу</button>
+    <button class="btn gh" onclick="toast('Заявка руководству на закуп сырья отправлена')">${ic('raw')}Заявка на закуп</button>
+  </div></div>`;
+};
+
+P.prodM = ()=>{
+  const cols=Object.entries(S.pipe).slice(0,4).map(([k,v])=>`<div class="st"><h4>${k}<span>${v.length}</span></h4>
+    ${v.map(c=>`<div class="cd ${c.c}"><b>${c.t}</b><div class="m">${c.m}</div></div>`).join('')||'<div style="font-size:12px;color:var(--mut2);padding:6px 2px">пусто</div>'}</div>`).join('');
+  const rows=S.prod.filter(p=>p.master==='Ерлан Жақсылық').map(p=>{
+    const pr=Math.round((p.outH+p.outL)/(p.inH+p.inL)*100);
+    return `<tr><td><b>${p.id}</b><div class="m">${p.date} · ${p.shift}</div></td>
+      <td class="num">${F(p.inH)} / ${F(p.inL)}</td><td class="num">${F(p.outH)} / ${F(p.outL)}</td>
+      <td class="num" style="color:${p.def>5?'var(--rd)':'var(--tx)'}">${p.def}</td>
+      <td><div style="display:flex;align-items:center;gap:8px"><div class="prog"><i class="${pr>93?'g':'o'}" style="width:${pr}%"></i></div><b>${pr}%</b></div></td>
+      <td>${badge(p.st)}</td></tr>`;
+  }).join('');
+  return `
+  ${kpi([
+    {l:'В цехе сейчас',v:'42 гол / 135 нож',s:'этап: опалка',i:'prod'},
+    {l:'Промыто и сдано',v:'78 гол / 265 нож',s:'за смену',i:'check',c:'g'},
+    {l:'Брак',v:'3 шт',s:'норма до 2 %',i:'exp',c:'r'}
+  ])}
+  <div class="filters">
+    <button class="btn" onclick="prodModal()">${ic('plus')}Партия в работу</button>
+    <button class="btn gh" onclick="toast('Этап изменён')">${ic('water')}Передать на промывку</button>
+    <button class="btn gh" onclick="toast('Брак зафиксирован, укажите причину')">${ic('exp')}Отметить брак</button>
+  </div>
+  <div class="card"><div class="hd"><h3>Этапы очистки</h3><div class="spacer"></div><span class="mini only-m" style="font-size:11px">листайте вбок →</span></div>
+    <div class="bd"><div class="pipe">${cols}</div></div></div>
+  <div class="card"><div class="hd"><h3>Мои смены</h3></div>
+    <div class="bd tight">${tbl(['Смена','+Принято г/н','+Сдано г/н','+Брак','Выход','Статус'],rows)}</div></div>`;
+};
+
+P.finM = ()=>{
+  const rows=S.fin.map(f=>`<tr><td><b>${f.n}</b><div class="m">партия от ${f.d}</div></td>
+    <td class="num"><b>${F(f.q)}</b> ${f.u}</td><td>${f.srok}</td></tr>`).join('');
+  return `
+  ${kpi([
+    {l:'Головы на складе',v:'340 шт',s:'сдано сменой сегодня 78',i:'fin',c:'g'},
+    {l:'Ножки на складе',v:'1 203 шт',s:'сдано сменой сегодня 265',i:'fin',c:'g'},
+    {l:'Ожидает сдачи',v:'42 гол / 135 нож',s:'после промывки',i:'prod',c:'o'}
+  ])}
+  <div class="filters"><button class="btn gr" onclick="toast('Партия сдана на склад готовой продукции')">${ic('check')}Сдать партию на склад</button></div>
+  <div class="card"><div class="hd"><h3>Остатки готовой продукции</h3><div class="spacer"></div><span class="mini">без резервов и цен</span></div>
+    <div class="bd tight">${tbl(['Номенклатура','+Остаток','Годен'],rows)}</div></div>`;
+};
+
+P.expM = ()=>{
+  const my=S.exp.filter(e=>['Газ','Вода','Электроэнергия','Хозрасходы','Ремонт'].includes(e.cat));
+  const rows=my.map(e=>`<tr><td>${e.date}</td><td>${badge(e.cat)}</td><td class="num"><b>${T(e.sum)}</b></td>
+    <td>${e.note}</td><td>${e.rc?`<span class="bdg g">${ic('check')}чек</span>`:'<span class="bdg o">добавить чек</span>'}</td></tr>`).join('');
+  return `
+  ${kpi([
+    {l:'Расходы цеха, август',v:T(524300),s:'газ, вода, свет, хозчасть',i:'fire',c:'o'},
+    {l:'Внесено мной',v:'11 записей',s:'2 без чека',i:'exp'}
+  ])}
+  <div class="filters"><button class="btn" onclick="expModal()">${ic('plus')}Расход по цеху</button></div>
+  <div class="card"><div class="hd"><h3>Расходы цеха</h3><div class="spacer"></div><span class="mini">зарплата и аренда — у руководства</span></div>
+    <div class="bd tight">${tbl(['Дата','Категория','+Сумма','Примечание','Чек'],rows)}</div></div>`;
+};
+
+/* --- контакты точек для доставщика: без оборота, долгов и условий --- */
+P.cliMini = ()=>{
+  const items=[['Ресторан «Шымкент»','пр. Тауке хана 12','+7 705 811 22 09','сегодня 14:30'],
+    ['Кафе «Мерей»','ул. Байтурсынова 41','+7 701 234 56 78','сегодня 16:00'],
+    ['Кафе «Достык»','Сайрам, ул. Абая 5','+7 702 145 90 12','доставлено 11:20']];
+  return `<div class="card"><div class="hd"><h3>Точки на сегодня</h3><div class="spacer"></div><span class="mini">${items.length} адреса</span></div>
+    <div class="bd tight list">${items.map(c=>`<div class="it"><div class="ic">${ic('cli')}</div>
+      <div class="tx"><b>${c[0]}</b><span>${c[1]}</span></div>
+      <div class="rt"><a class="btn sm gh" href="tel:${c[2].replace(/[^+\d]/g,'')}">${ic('cli')}Звонок</a><div class="m" style="margin-top:4px">${c[3]}</div></div></div>`).join('')}</div>
+    <div class="bd" style="border-top:1px solid var(--line);font-size:12.5px;color:var(--mut)">Суммы оборота и долги клиентов доступны только руководству.</div></div>`;
+};
+
 /* ==================== НАВИГАЦИЯ ==================== */
 const NAV = {
-  boss:{name:'Рустем Қалиев',pos:'Руководство',ini:'РҚ',
+  boss:{name:'Нұрсұлтан Ермаханұлы',pos:'Руководство',ini:'РҚ',
     items:[
       {k:'dash',t:'Дашборд',i:'home',g:'Обзор'},
       {k:'raw',t:'Склад сырья',i:'raw',g:'Производство',c:'2'},
@@ -776,30 +865,32 @@ const NAV = {
     bottom:['dash','raw','prod','sales']},
   master:{name:'Ерлан Жақсылық',pos:'Начальник смены',ini:'ЕЖ',
     items:[
-      {k:'shift',t:'Моя смена',i:'shift',g:'Смена'},
-      {k:'raw',t:'Склад сырья',i:'raw',c:'2'},
-      {k:'prod',t:'Очистка и промывка',i:'prod'},
-      {k:'fin',t:'Склад готовой',i:'fin'},
-      {k:'exp',t:'Расходы по цеху',i:'exp',g:'Учёт'},
-      {k:'usr',t:'Бригада',i:'usr'}
+      {k:'shift',t:'Моя смена',i:'shift',g:'Цех'},
+      {k:'rawM',t:'Сырьё в цехе',i:'raw',c:'2'},
+      {k:'prodM',t:'Очистка и промывка',i:'prod'},
+      {k:'finM',t:'Сдача на склад',i:'fin'},
+      {k:'expM',t:'Расходы цеха',i:'exp',g:'Учёт'}
     ],
-    bottom:['shift','raw','prod','fin']},
+    bottom:['shift','rawM','prodM','finM']},
   courier:{name:'Бақыт Сейітов',pos:'Доставщик',ini:'БС',
     items:[
       {k:'mydel',t:'Мои доставки',i:'del',g:'Работа',c:'2'},
       {k:'route',t:'Маршрут и оплата',i:'route'},
-      {k:'cli',t:'Клиенты',i:'cli'},
-      {k:'myfin',t:'Моя касса',i:'money',g:'Финансы'}
+      {k:'cliMini',t:'Точки и контакты',i:'cli'},
+      {k:'myfin',t:'Моя касса',i:'money'}
     ],
-    bottom:['mydel','route','cli','myfin']}
+    bottom:['mydel','route','cliMini','myfin']}
 };
 const TITLES = {dash:'Дашборд',raw:'Склад неочищенного сырья',prod:'Очистка от шерсти и промывка',fin:'Склад очищенной продукции',
   sales:'Заказы и продажи',cli:'Клиенты',del:'Доставка и самовывоз',exp:'Расходы и коммуналка',rep:'Отчёты',usr:'Сотрудники и доступы',
-  set:'Настройки',shift:'Моя смена',mydel:'Мои доставки',route:'Маршрут и приём оплаты',myfin:'Моя касса'};
+  set:'Настройки',shift:'Моя смена',mydel:'Мои доставки',route:'Маршрут и приём оплаты',myfin:'Моя касса',
+  rawM:'Сырьё в цехе',prodM:'Очистка и промывка',finM:'Сдача на склад',expM:'Расходы цеха',cliMini:'Точки и контакты'};
 const SUBS = {dash:'Сегодня, 27 августа 2026',raw:'Приходы, остатки, передача в цех',prod:'Смены, этапы, выход продукции',
   fin:'Остатки, резервы, движение',sales:'Доставка и самовывоз',cli:'Кафе, рестораны, опт',del:'Курьеры и статусы',
   exp:'С примечаниями и чеками',rep:'Выход, себестоимость, прибыль',usr:'Роли и права',set:'Номенклатура, нормы, компания',
-  shift:'СМ-0318 · дневная · 08:00–20:00',mydel:'Сегодня, 27 августа',route:'3 точки · 46 км',myfin:'Август 2026'};
+  shift:'СМ-0318 · дневная · 08:00–20:00',mydel:'Сегодня, 27 августа',route:'3 точки · 46 км',myfin:'Август 2026',
+  rawM:'Остатки в штуках, передача в работу',prodM:'Этапы смены и брак',finM:'Что сдано сменой',expM:'Газ, вода, свет, хозчасть',
+  cliMini:'Только адреса и телефоны'};
 
 let role='boss', page='dash';
 
